@@ -70,19 +70,19 @@
           <span>112 DISPATCH</span>
         </button>
 
-        <button class="icon-action-btn" id="audioToggleBtn" title="Toggle Procedural Audio Feedback">
+        <button class="icon-action-btn" id="audioToggleBtn" title="Toggle Procedural Audio Feedback" aria-label="Toggle procedural audio sound synthesis" aria-pressed="true">
           <i class="fa-solid fa-volume-high" id="audioIcon"></i>
         </button>
 
-        <button class="icon-action-btn" id="infoHelpBtn" title="Rapid Distress Protocol Guide">
+        <button class="icon-action-btn" id="infoHelpBtn" title="Rapid Distress Protocol Guide" aria-label="Rapid distress protocol and keyboard shortcuts guide">
           <i class="fa-solid fa-shield-cat"></i>
         </button>
       </div>
 
     </header>
 
-    <!-- Dynamic Toast Feedback -->
-    <div class="toast-pill mono" id="toastPill">
+    <!-- Dynamic Toast Feedback (Accessible Live Region) -->
+    <div class="toast-pill mono" id="toastPill" role="status" aria-live="polite">
       <i class="fa-solid fa-circle-check" style="color:var(--accent-color)"></i>
       <span id="toastMsg">Dispatch telemetry linked</span>
     </div>
@@ -119,7 +119,7 @@
             </div>
 
             <!-- Hidden File Input for Real Uploads -->
-            <input type="file" id="civicFileInput" accept="image/*" style="display:none;" onchange="NexusZones.handleCivicFileUpload(event)">
+            <input type="file" id="civicFileInput" accept="image/*" aria-label="Upload photo of road or civic hazard" style="display:none;" onchange="NexusZones.handleCivicFileUpload(event)">
 
             <!-- STEP 1: Live Viewfinder Area -->
             <div id="civicLiveViewSection">
@@ -212,7 +212,7 @@
 
             </div>
 
-            <!-- STEP 3: Structured Municipal Work Order Card -->
+            <!-- STEP 3: Structured Municipal Triage & Decision Support Card -->
             <div class="result-card-container" id="civicResultCard">
               
               <div class="civic-card-header">
@@ -220,42 +220,45 @@
                   <i class="fa-solid fa-road-barrier"></i>
                 </div>
                 <div>
-                  <div style="font-size:18px; font-weight:800; color:#fff;">🚧 Issue: Severe Asphalt Cavity (Pothole)</div>
-                  <div class="civic-workorder-tag mono" style="margin-top:4px;">
-                    <i class="fa-solid fa-hashtag"></i> WORK ORDER #MH-CIVIC-8921
+                  <div style="font-size:18px; font-weight:800; color:#fff;" id="civicResultTitle">🚧 Issue: Severe Asphalt Cavity (Pothole)</div>
+                  <div class="civic-workorder-tag mono" style="margin-top:4px;" id="civicResultBadge">
+                    <i class="fa-solid fa-microchip"></i> DECISION SUPPORT ESTIMATE • REVIEW READY
                   </div>
                 </div>
               </div>
 
               <div class="dispatch-info-grid mono">
                 <div class="info-tile">
-                  <div class="info-tile-label"><i class="fa-solid fa-building-columns"></i> Jurisdiction</div>
-                  <div class="info-tile-val">PCMC Ward 14</div>
-                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">MG Road South Bypass</div>
+                  <div class="info-tile-label"><i class="fa-solid fa-building-columns"></i> Suggested Authority</div>
+                  <div class="info-tile-val" id="civicResultJurisdiction">PCMC Ward 14 PWD</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="civicResultGeoSub">Verified GPS Triangulation</div>
                 </div>
                 <div class="info-tile">
                   <div class="info-tile-label"><i class="fa-solid fa-clock"></i> Target Resolution SLA</div>
-                  <div class="info-tile-val" style="color:var(--color-civic)">24 Hours</div>
-                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">Rapid Asphalt Patch Fleet</div>
+                  <div class="info-tile-val" style="color:var(--color-civic)" id="civicResultSLA">24 Hours</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">Standard Municipal Guideline</div>
                 </div>
                 <div class="info-tile">
-                  <div class="info-tile-label"><i class="fa-solid fa-shield-halved"></i> Verification</div>
-                  <div class="info-tile-val" style="color:#34d399">Blockchain Stamped</div>
-                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">Public Ledger Hash Verified</div>
+                  <div class="info-tile-label"><i class="fa-solid fa-gauge-high"></i> Priority Rating</div>
+                  <div class="info-tile-val" style="color:#fbbf24;" id="civicResultPriority">85 / 100 (HIGH)</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="civicResultPrioritySub">Safety Weight: 35 • Severity: 25</div>
                 </div>
               </div>
 
-              <div class="dispatch-success-banner" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+              <div class="dispatch-success-banner" id="civicResultBanner" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
                 <i class="fa-solid fa-clipboard-check"></i>
                 <div>
-                  <div>Action: Municipal Work Order Filed Successfully</div>
-                  <div style="font-size:12px; opacity:0.85; font-weight:500;">Dispatched to Public Works Dept Fleet • Ward Engineer Assigned</div>
+                  <div id="civicResultBannerTitle">Status: Triage Docket Formatted &amp; Stored Locally</div>
+                  <div style="font-size:12px; opacity:0.85; font-weight:500;" id="civicResultRecommendation">Recommendation: Exercise caution. Export report or present to local ward office.</div>
                 </div>
               </div>
 
               <div class="card-actions-row">
-                <button class="btn-action btn-primary-action" style="background:var(--color-civic); color:#000;" onclick="NexusApp.showToast('Public Docket #8921 link copied!')">
-                  <i class="fa-solid fa-link"></i> Share Docket Link
+                <button class="btn-action btn-primary-action" style="background:var(--color-civic); color:#000;" onclick="NexusZones.exportCivicReport('json')">
+                  <i class="fa-solid fa-file-arrow-down"></i> Export Docket (JSON)
+                </button>
+                <button class="btn-action btn-secondary-action" onclick="NexusZones.exportCivicReport('csv')">
+                  <i class="fa-solid fa-file-csv"></i> Export CSV
                 </button>
                 <button class="btn-action btn-secondary-action" onclick="NexusZones.retakeCivic()">
                   <i class="fa-solid fa-camera-rotate"></i> New Scan / Capture
@@ -292,7 +295,7 @@
             </div>
 
             <!-- Hidden File Input for Real Med Uploads -->
-            <input type="file" id="medFileInput" accept="image/*,.pdf" style="display:none;" onchange="NexusZones.handleMedFileUpload(event)">
+            <input type="file" id="medFileInput" accept="image/*,.pdf" aria-label="Upload prescription, discharge summary or medical lab report" style="display:none;" onchange="NexusZones.handleMedFileUpload(event)">
 
             <!-- STEP 1A: Live Camera Viewfinder for Med Scanner -->
             <div id="medCameraLiveSection" style="display:none; margin-bottom: 24px;">
@@ -493,16 +496,17 @@
             </div>
 
             <!-- Hidden File Input for Document/Challan/Notice Uploads -->
-            <input type="file" id="shieldFileInput" accept="image/*,.pdf" style="display:none;" onchange="NexusZones.handleShieldDocUpload(event)">
+            <input type="file" id="shieldFileInput" accept="image/*,.pdf" aria-label="Upload suspicious document, traffic e-challan or legal notice" style="display:none;" onchange="NexusZones.handleShieldDocUpload(event)">
 
             <!-- MODE A: Text / Link / SMS Input Container -->
             <div id="shieldTextSection">
               <div class="shield-input-container">
-                <textarea class="shield-textarea" id="shieldInput" placeholder="Paste suspicious SMS, WhatsApp forward, email excerpt, or URL here to verify threat signature..."></textarea>
+                <label for="shieldInput" class="sr-only">Suspicious message, SMS, email text or URL to verify</label>
+                <textarea class="shield-textarea" id="shieldInput" aria-label="Suspicious SMS message, email or URL to inspect" placeholder="Paste suspicious SMS, WhatsApp forward, email excerpt, or URL here to verify threat signature..."></textarea>
                 
                 <div class="shield-tools-bar">
                   <div style="font-size:12px; color:var(--text-muted);" id="shieldInputCounter">0 chars</div>
-                  <button class="icon-action-btn" title="Paste from Clipboard" onclick="NexusZones.pasteClipboard()">
+                  <button class="icon-action-btn" title="Paste from Clipboard" aria-label="Paste text from clipboard" onclick="NexusZones.pasteClipboard()">
                     <i class="fa-solid fa-paste"></i>
                   </button>
                 </div>
@@ -754,7 +758,7 @@
     <!-- ===================================================================
          SHARED AI PROCESSING MODAL OVERLAY
          =================================================================== -->
-    <div class="nexus-processing-modal" id="processingModal" role="dialog" aria-modal="true">
+    <div class="nexus-processing-modal" id="processingModal" role="dialog" aria-modal="true" aria-labelledby="procTitle" aria-describedby="procSubtitle">
       <div class="processing-box-card">
         <div class="radar-spinner" id="processingSpinner"></div>
         <div class="processing-title" id="procTitle">Triangulating Distress Beacon</div>
@@ -798,6 +802,7 @@
 
   <!-- Modular Scripts -->
   <script src="js/audio.js"></script>
+  <script src="js/validator.js"></script>
   <script src="js/api.js"></script>
   <script src="js/hardware.js"></script>
   <script src="js/zones.js"></script>

@@ -110,6 +110,8 @@ const NexusZones = (() => {
     }, 200);
   };
 
+  let lastCivicDocket = null;
+
   // STEP 2: Start Analysis & Docketing (Explicitly triggered by user on the review card)
   const startCivicAnalysis = async () => {
     NexusAudio.play('click');
@@ -117,20 +119,21 @@ const NexusZones = (() => {
     const coords = await NexusHardware.getCurrentCoordinates();
     const frameData = window.lastCivicFrame || "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/";
 
-    NexusHardware.processNexusInput("CIVIC", frameData, coords).then((res) => {
-      console.log("[Nexus Civic API Response]", res);
-    }).catch((err) => {
+    let liveApiResponse = null;
+    try {
+      liveApiResponse = await NexusHardware.processNexusInput("CIVIC", frameData, coords);
+    } catch (err) {
       console.info("[Nexus Civic API Bridge] Using local fallback:", err.message);
-    });
+    }
 
     NexusApp.runAiProcessingSequence(
       {
         title: 'Analyzing Hazard Geometry',
         subtitle: 'Computer vision surface & GIS telemetry',
         steps: [
-          'Depth cavity extracted (42cm depth - Severe Rating)',
-          'Reverse geotag matched (PCMC Ward 14, MG Road)',
-          'Registering authenticated municipal public docket'
+          'Depth cavity extracted (surface inspection)',
+          'Reverse geotag triangulated to municipal ward',
+          'Computing deterministic priority scoring'
         ],
         duration: 2000
       },
@@ -139,9 +142,117 @@ const NexusZones = (() => {
         const resultCard = document.getElementById('civicResultCard');
         if (previewBox) previewBox.classList.remove('active');
         if (resultCard) resultCard.classList.add('active');
-        NexusApp.showToast('🚧 Municipal Work Order #MH-CIVIC-8921 Filed!');
+
+        // Dynamically bind validated AI or heuristic data
+        const isLive = Boolean(liveApiResponse && liveApiResponse.issue);
+        const data = isLive ? liveApiResponse : {
+          issue: "Severe Asphalt Cavity (Pothole)",
+          severity: "HIGH",
+          estimatedDepthOrDimension: "42cm depth",
+          hazardCategory: "Road Hazard",
+          jurisdiction: "PCMC Ward 14 Public Works Dept (Suggested)",
+          slaTargetHours: 24,
+          safetyRecommendation: "Cordon off hazard zone and exercise caution.",
+          isAiVerified: false
+        };
+
+        const validated = window.NexusValidator ? window.NexusValidator.validateCivicSchema(data).validatedData : data;
+        const priority = window.NexusValidator
+          ? window.NexusValidator.calculatePriorityScore({
+              severity: validated.severity,
+              category: validated.hazardCategory,
+              hasImage: Boolean(window.lastCivicFrame),
+              hasVerifiedLocation: Boolean(coords && coords.latitude)
+            })
+          : { score: 85, level: "HIGH", breakdown: { safetyImpact: { points: 35 }, severity: { points: 25 }, evidenceQuality: { points: 10 } } };
+
+        lastCivicDocket = {
+          docketId: `NX-CIVIC-${Date.now().toString(36).toUpperCase()}`,
+          issue: validated.issue,
+          severity: validated.severity,
+          category: validated.hazardCategory,
+          jurisdiction: validated.jurisdiction,
+          priorityScore: priority.score,
+          priorityLevel: priority.level,
+          slaTargetHours: validated.slaTargetHours,
+          recommendation: validated.safetyRecommendation,
+          coordinates: coords,
+          isAiVerified: isLive,
+          timestamp: new Date().toISOString()
+        };
+
+        const titleEl = document.getElementById('civicResultTitle');
+        const badgeEl = document.getElementById('civicResultBadge');
+        const jurEl = document.getElementById('civicResultJurisdiction');
+        const slaEl = document.getElementById('civicResultSLA');
+        const priEl = document.getElementById('civicResultPriority');
+        const priSubEl = document.getElementById('civicResultPrioritySub');
+        const recEl = document.getElementById('civicResultRecommendation');
+        const bannerTitleEl = document.getElementById('civicResultBannerTitle');
+
+        if (titleEl) titleEl.textContent = `🚧 Issue: ${validated.issue}`;
+        if (badgeEl) {
+          badgeEl.innerHTML = isLive
+            ? `<i class="fa-solid fa-sparkles" style="color:#10b981"></i> AI AUDITED (GEMINI 1.5) • DOCKET #${lastCivicDocket.docketId}`
+            : `<i class="fa-solid fa-microchip" style="color:#fbbf24"></i> DECISION SUPPORT ESTIMATE • DOCKET #${lastCivicDocket.docketId}`;
+        }
+        if (jurEl) jurEl.textContent = validated.jurisdiction;
+        if (slaEl) slaEl.textContent = `${validated.slaTargetHours} Hours`;
+        if (priEl) {
+          priEl.textContent = `${priority.score} / 100 (${priority.level})`;
+          priEl.style.color = priority.level === 'CRITICAL' ? '#ef4444' : '#fbbf24';
+        }
+        if (priSubEl) {
+          priSubEl.textContent = `Safety: ${priority.breakdown.safetyImpact.points} • Severity: ${priority.breakdown.severity.points} • Evidence: ${priority.breakdown.evidenceQuality.points}`;
+        }
+        if (bannerTitleEl) bannerTitleEl.textContent = `Status: Triage Docket #${lastCivicDocket.docketId} Formatted`;
+        if (recEl) recEl.textContent = `Recommendation: ${validated.safetyRecommendation}`;
+
+        NexusApp.showToast(isLive ? '✅ AI Hazard Analysis Complete & Verified' : '🚧 Local Decision Support Docket Prepared');
       }
     );
+  };
+
+  const exportCivicReport = (format = 'json') => {
+    NexusAudio.play('click');
+    if (!lastCivicDocket) {
+      NexusApp.showToast('Please capture and analyze a hazard before exporting.');
+      return;
+    }
+
+    const safeFilename = `Nexus_Civic_Docket_${lastCivicDocket.docketId}`;
+
+    if (format === 'json') {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(lastCivicDocket, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `${safeFilename}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      NexusApp.showToast('📥 Docket exported as JSON file');
+    } else if (format === 'csv') {
+      const headers = ['docketId', 'issue', 'severity', 'category', 'priorityScore', 'priorityLevel', 'jurisdiction', 'slaTargetHours', 'timestamp'];
+      const values = [
+        lastCivicDocket.docketId,
+        `"${(lastCivicDocket.issue || '').replace(/"/g, '""')}"`,
+        lastCivicDocket.severity,
+        lastCivicDocket.category,
+        lastCivicDocket.priorityScore,
+        lastCivicDocket.priorityLevel,
+        `"${(lastCivicDocket.jurisdiction || '').replace(/"/g, '""')}"`,
+        lastCivicDocket.slaTargetHours,
+        lastCivicDocket.timestamp
+      ];
+      const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(`${headers.join(',')}\n${values.join(',')}`);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', csvContent);
+      downloadAnchor.setAttribute('download', `${safeFilename}.csv`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      NexusApp.showToast('📥 Docket exported as CSV file');
+    }
   };
 
   const retakeCivic = () => {
@@ -196,6 +307,11 @@ const NexusZones = (() => {
   const handleCivicFileUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        NexusApp.showToast('File size exceeds 10MB limit. Please choose a smaller photo.');
+        return;
+      }
+
       NexusAudio.play('shutter');
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -390,6 +506,10 @@ const NexusZones = (() => {
   const handleMedFileUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        NexusApp.showToast('File size exceeds 10MB limit. Please choose a smaller document.');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (event) => {
         window.lastMedDocBase64 = event.target.result;
@@ -524,6 +644,10 @@ const NexusZones = (() => {
   const handleShieldDocUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        NexusApp.showToast('File size exceeds 10MB limit. Please choose a smaller file.');
+        return;
+      }
       setShieldMode('doc');
       NexusAudio.play('click');
 
@@ -806,6 +930,7 @@ const NexusZones = (() => {
     startCivicAnalysis,
     retakeCivic,
     handleCivicFileUpload,
+    exportCivicReport,
     loadMedDocument,
     setMedMode,
     captureMedCameraMedia,

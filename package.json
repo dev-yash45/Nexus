@@ -4,7 +4,9 @@
   "description": "Universal Bridge multimodal emergency and civic action engine",
   "main": "api/nexus-engine.js",
   "scripts": {
-    "start": "node api/nexus-engine.js"
+    "start": "node api/nexus-engine.js",
+    "test": "node --test test/**/*.test.js",
+    "lint": "node -c api/nexus-engine.js js/*.js test/*.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0"

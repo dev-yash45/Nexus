@@ -138,3 +138,70 @@ img, video, canvas, svg {
 .mono {
   font-family: 'Roboto Mono', monospace;
 }
+
+/* ==========================================================================
+   ACCESSIBILITY & INCLUSIVE DESIGN ENHANCEMENTS
+   WCAG 2.1 AA Compliance • Keyboard Focus • Screen Reader & Reduced Motion
+   ========================================================================== */
+
+/* 1. Screen Reader Only Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* 2. High-Contrast Focus Visible Rings for Keyboard Navigation */
+:focus-visible {
+  outline: 2px solid var(--accent-color) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 12px var(--accent-glow) !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="tab"]:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* 3. Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .scanner-laser-bar,
+  .radar-spinner,
+  .shutter-flash-overlay,
+  .zone-dot {
+    animation: none !important;
+  }
+}
+
+/* 4. Minimum Touch Target Sizing (44px x 44px) */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+.mobile-nav-btn,
+.desktop-tab-btn,
+.mode-pill-btn,
+.icon-action-btn,
+.quick-hotline-btn {
+  min-height: 40px;
+}

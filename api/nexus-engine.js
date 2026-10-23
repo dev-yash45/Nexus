@@ -50,6 +50,13 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // Payload size safety guard (reject payloads exceeding 15MB)
+    if (typeof inputContent === "string" && inputContent.length > 15 * 1024 * 1024) {
+      return res.status(413).json({
+        error: "Payload Too Large. Input content exceeds 15MB limit."
+      });
+    }
+
     // Auto-detect MIME type from Base64 data URL header if not explicitly provided
     if (!mimeType) {
       if (inputContent.startsWith("data:")) {
@@ -86,7 +93,7 @@ module.exports = async function handler(req, res) {
       case "CIVIC":
         systemPrompt = `
 You are the NEXUS Municipal Infrastructure Sentinel AI.
-Your role: Classify citizen-reported road damage, dangerous potholes, open manholes, downed electric cables, water logging, or public hazards from photos, video frames, or text reports.
+Your role: Classify citizen-reported road damage, dangerous potholes, open manholes, downed electric cables, water logging, or public hazards from photos or text reports.
 
 Return a clean JSON object with this exact structure:
 {
@@ -94,11 +101,11 @@ Return a clean JSON object with this exact structure:
   "severity": "CRITICAL" | "MODERATE" | "LOW",
   "estimatedDepthOrDimension": "Estimated size (e.g. 42cm depth, 1.2m diameter)",
   "hazardCategory": "Road Hazard" | "Electrical" | "Sanitation" | "Public Safety",
-  "jurisdiction": "PCMC Ward 14 Public Works Dept",
-  "workOrderNumber": "MH-CIVIC-8921",
-  "actionTaken": "Municipal Work Order Filed",
+  "jurisdiction": "PCMC Public Works Dept (Suggested Authority)",
+  "actionTaken": "Citizen Triage Docket Prepared — Ready for Review",
   "slaTargetHours": 24,
-  "safetyRecommendation": "Cordon off lane and dispatch rapid patching crew"
+  "safetyRecommendation": "Cordon off hazard perimeter and exercise caution",
+  "isAiVerified": true
 }
 `;
         break;
