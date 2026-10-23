@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Nexus — Universal Multimodal Emergency & Civic Bridge</title>
+  <meta name="description" content="Nexus is an elite multimodal emergency and civic action portal engineered for high-stress situations.">
+  
+  <!-- Google Fonts: Inter & Roboto Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 CDN for iconography -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/zones.css">
+</head>
+
+<body data-active-zone="sos">
+  
+  <div class="app-viewport-wrapper">
+    
+    <!-- Top Global Command Bar (Universal Desktop Header) -->
+    <header class="nexus-top-bar" role="banner">
+      
+      <!-- Brand & Active Zone Tag -->
+      <div class="top-bar-left">
+        <div class="brand-badge-logo" id="headerLogo">
+          <i class="fa-solid fa-circle-nodes"></i>
+        </div>
+        <div class="brand-titles">
+          <h1>Nexus <span class="zone-indicator-pill mono" id="activeZoneBadge"><span class="zone-dot"></span> RED ZONE (112 APEX)</span></h1>
+          <span class="brand-tagline mono">Universal Multimodal Emergency & Civic Bridge</span>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Tabs (Center) -->
+      <nav class="top-nav-tabs-desktop" role="tablist" aria-label="Zone Selector">
+        <button class="desktop-tab-btn active" data-zone="sos" role="tab" aria-selected="true" onclick="NexusApp.switchTab('sos')">
+          <i class="fa-solid fa-tower-broadcast"></i>
+          <span>SOS Distress</span>
+        </button>
+
+        <button class="desktop-tab-btn" data-zone="civic" role="tab" aria-selected="false" onclick="NexusApp.switchTab('civic')">
+          <i class="fa-solid fa-person-digging"></i>
+          <span>Civic Action</span>
+        </button>
+
+        <button class="desktop-tab-btn" data-zone="med" role="tab" aria-selected="false" onclick="NexusApp.switchTab('med')">
+          <i class="fa-solid fa-heart-pulse"></i>
+          <span>Med-Scanner</span>
+        </button>
+
+        <button class="desktop-tab-btn" data-zone="shield" role="tab" aria-selected="false" onclick="NexusApp.switchTab('shield')">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Scam Shield</span>
+        </button>
+      </nav>
+
+      <!-- System Telemetry & Quick Action (Right) -->
+      <div class="top-bar-right">
+        <div class="status-telemetry-chip mono">
+          <i class="fa-solid fa-satellite" style="color:var(--accent-color)"></i>
+          <span>NavIC MESH: 100%</span>
+          <span>&bull;</span>
+          <span class="clock-display" id="liveClock">10:42:00</span>
+        </div>
+
+        <button class="hotline-quick-btn" onclick="NexusZones.call112()" title="Direct VoIP line to Central Dispatch">
+          <i class="fa-solid fa-phone"></i>
+          <span>112 DISPATCH</span>
+        </button>
+
+        <button class="icon-action-btn" id="audioToggleBtn" title="Toggle Procedural Audio Feedback">
+          <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+        </button>
+
+        <button class="icon-action-btn" id="infoHelpBtn" title="Rapid Distress Protocol Guide">
+          <i class="fa-solid fa-shield-cat"></i>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- Dynamic Toast Feedback -->
+    <div class="toast-pill mono" id="toastPill">
+      <i class="fa-solid fa-circle-check" style="color:var(--accent-color)"></i>
+      <span id="toastMsg">Dispatch telemetry linked</span>
+    </div>
+
+    <!-- Main Command Center Workspace -->
+    <main class="nexus-main-workspace" id="mainWorkspace">
+
+      <!-- ===================================================================
+           LEFT COLUMN: ACTIVE ZONE STAGE
+           =================================================================== -->
+      <div class="main-feature-column">
+
+        <!-- -----------------------------------------------------------------
+             ZONE 1: SOS (THE RED ZONE - DEFAULT)
+             ----------------------------------------------------------------- -->
+        <section class="tab-pane active" id="pane-sos" role="tabpanel" aria-labelledby="tab-sos">
+          
+          <div class="glass-card">
+            
+            <div class="pane-header-box">
+              <div class="pane-intro-text">
+                <h2><i class="fa-solid fa-tower-broadcast" style="color:var(--color-sos)"></i> SOS Emergency Apex</h2>
+                <p>Broadcasts multimodal biometrics, distress audio & satellite coordinates to Emergency Response Support System (112).</p>
+              </div>
+
+              <div class="telemetry-ticker mono" style="margin-bottom:0;">
+                <span class="telemetry-tag"><i class="fa-solid fa-satellite-dish"></i> NavIC / GPS LOCKED</span>
+                <span>18.6272° N, 73.8007° E</span>
+              </div>
+            </div>
+
+            <!-- Central Hold to Speak Container -->
+            <div class="sos-stage-wrapper" id="sosHoldArea">
+              
+              <div class="pulse-rings-wrapper">
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+
+                <!-- Circular Progress Ring Gauge -->
+                <svg class="hold-progress-svg" viewBox="0 0 224 224">
+                  <circle cx="112" cy="112" r="100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="5"></circle>
+                  <circle class="hold-progress-circle" id="sosProgressCircle" cx="112" cy="112" r="100" fill="none" stroke="#ffffff" stroke-width="6"></circle>
+                </svg>
+
+                <!-- The Massive SOS Button -->
+                <button class="sos-main-button" id="sosBtn" aria-label="Hold to Speak or Record Emergency Distress Audio">
+                  <i class="fa-solid fa-microphone-lines sos-icon"></i>
+                  <span class="sos-label">HOLD SOS</span>
+                  <span class="sos-subtext mono">VOICE / AUDIO</span>
+                </button>
+              </div>
+
+              <!-- Expanding Audio Wave Visualizer -->
+              <div class="audio-waves-container" id="sosAudioWaves">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+
+              <div class="sos-instruction" id="sosInstructionText">
+                <i class="fa-solid fa-fingerprint"></i> Press & hold for 1.5s to trigger emergency broadcast
+              </div>
+
+              <div style="margin-top:20px; display:flex; gap:10px; width:100%; max-width:400px; flex-wrap:wrap;">
+                <button class="btn-action btn-secondary-action" onclick="NexusZones.call112()">
+                  <i class="fa-solid fa-phone"></i> Instant Call 112
+                </button>
+                <button class="btn-action btn-secondary-action" onclick="NexusZones.triggerSosEmergency()">
+                  <i class="fa-solid fa-bolt"></i> One-Tap Silent Beacon
+                </button>
+              </div>
+
+              <!-- Voice Recognition Simulation Presets -->
+              <div style="margin-top:16px; width:100%; max-width:440px; text-align:center;">
+                <div class="mono" style="font-size:10.5px; color:var(--text-muted); margin-bottom:8px;">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--color-sos)"></i> TEST MULTIMODAL VOICE ROUTING (1-CLICK SAMPLES):
+                </div>
+                <div class="quick-preset-chips" style="justify-content:center; flex-wrap:wrap; gap:6px;">
+                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('fire')"><i class="fa-solid fa-fire" style="color:#ef4444"></i> "Fire on 3rd Floor"</span>
+                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('police')"><i class="fa-solid fa-shield-halved" style="color:#38bdf8"></i> "Thieves Breaking In"</span>
+                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('accident')"><i class="fa-solid fa-car-burst" style="color:#f59e0b"></i> "Highway Collision"</span>
+                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('medical')"><i class="fa-solid fa-heart-pulse" style="color:#ec4899"></i> "Severe Chest Pain"</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Structured Emergency Output Card (Dynamic Dispatch Evaluation) -->
+            <div class="result-card-container" id="sosResultCard">
+              
+              <div class="emergency-badge-banner" id="sosBadgeBanner">
+                <div class="pulsing-alert-icon" id="sosAlertIcon">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                  <div style="font-size:18px; font-weight:900; color:#fff;" id="sosAlertTitle">🚨 Emergency Detected</div>
+                  <div class="mono" style="font-size:12px; color:#ff8787;" id="sosAlertSub">Distress Pattern Confirmed • Priority 1 Red Alert</div>
+                </div>
+              </div>
+
+              <!-- Live Voice Audio Transcript Pill -->
+              <div id="sosTranscriptBox" class="mono" style="display:none; margin-bottom:14px; background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); padding:10px 14px; font-size:12px; color:#f8fafc;">
+                <i class="fa-solid fa-microphone-lines" style="color:var(--color-sos); margin-right:6px;"></i>
+                <span style="color:var(--text-muted); margin-right:4px;">VOICE HEARD:</span>
+                <span id="sosTranscriptText" style="color:#fff; font-weight:600;">"Help, there is an emergency!"</span>
+              </div>
+
+              <div class="dispatch-info-grid mono">
+                <div class="info-tile">
+                  <div class="info-tile-label"><i class="fa-solid fa-location-crosshairs"></i> Precise Coordinates</div>
+                  <div class="info-tile-val" id="sosCoordsVal" style="color:var(--color-sos)">18.6272, 73.8007</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="sosCoordsSub">NavIC Locked • ±1.2m Accuracy</div>
+                </div>
+                <div class="info-tile">
+                  <div class="info-tile-label"><i class="fa-solid fa-truck-medical" id="sosUnitIcon"></i> Dispatch Unit</div>
+                  <div class="info-tile-val" id="sosUnitVal">Medic Trauma #409</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="sosUnitSub">Advanced Life Support (ALS) Unit</div>
+                </div>
+                <div class="info-tile">
+                  <div class="info-tile-label"><i class="fa-solid fa-tower-cell"></i> Emergency Category</div>
+                  <div class="info-tile-val" id="sosIncidentVal" style="color:#fbbf24;">Medical Trauma</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="sosUplinkSub">Encrypted 256-bit Beacon</div>
+                </div>
+              </div>
+
+              <!-- Dispatch ETA & Vehicle Status Banner -->
+              <div class="dispatch-success-banner" id="sosStatusBanner">
+                <i class="fa-solid fa-circle-check" id="sosStatusIcon"></i>
+                <div>
+                  <div id="sosStatusTitle">Ambulance Dispatched</div>
+                  <div style="font-size:12px; opacity:0.85; font-weight:500;" id="sosStatusSub">ETA: 4 mins • Sirens Activated • Traffic Corridor Priority Cleared</div>
+                </div>
+              </div>
+
+              <!-- Life-Saving First Responder Triage Instruction -->
+              <div id="sosTriageBox" style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:18px; font-size:12.5px; color:#fca5a5; display:flex; align-items:flex-start; gap:10px;">
+                <i class="fa-solid fa-life-ring" style="margin-top:2px; font-size:16px; color:#ef4444; flex-shrink:0;"></i>
+                <div>
+                  <strong style="color:#fff;">Immediate Action Protocol:</strong>
+                  <div id="sosTriageInstruction" style="margin-top:2px; color:#fecaca; line-height:1.4;">Keep patient still and calm. Clear airway and do not move unless in immediate danger.</div>
+                </div>
+              </div>
+
+              <div class="card-actions-row">
+                <button class="btn-action btn-primary-action" id="sosCallBtn" onclick="NexusZones.call112()">
+                  <i class="fa-solid fa-phone"></i> <span>Call Responder (112)</span>
+                </button>
+                <button class="btn-action btn-secondary-action" onclick="NexusApp.showToast('Encrypted live location token shared with first responders!')">
+                  <i class="fa-solid fa-share-nodes"></i> <span>Share Live Beacon</span>
+                </button>
+                <button class="btn-action btn-secondary-action" onclick="NexusZones.resetSos()">
+                  <i class="fa-solid fa-rotate-left"></i> <span>Reset</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- -----------------------------------------------------------------
+             ZONE 2: CIVIC ACTION (THE YELLOW ZONE - 2-STEP CAPTURE & REVIEW)
+             ----------------------------------------------------------------- -->
+        <section class="tab-pane" id="pane-civic" role="tabpanel" aria-labelledby="tab-civic">
+          
+          <div class="glass-card" style="border-color: rgba(245, 158, 11, 0.35);">
+            
+            <div class="pane-header-box">
+              <div class="pane-intro-text">
+                <h2><i class="fa-solid fa-person-digging" style="color:var(--color-civic)"></i> Civic Action Viewfinder</h2>
+                <p>Multimodal hazard classification, depth geometry profiling & rapid municipal docketing.</p>
+              </div>
+
+              <div class="civic-mode-pills mono">
+                <button class="mode-pill-btn active" data-mode="photo" onclick="NexusZones.setCivicMode('photo')">
+                  <i class="fa-solid fa-camera"></i> Photo
+                </button>
+                <button class="mode-pill-btn" data-mode="video" onclick="NexusZones.setCivicMode('video')">
+                  <i class="fa-solid fa-video"></i> Video Clip
+                </button>
+                <button class="mode-pill-btn" data-mode="upload" onclick="NexusZones.setCivicMode('upload')">
+                  <i class="fa-solid fa-upload"></i> Upload
+                </button>
+              </div>
+            </div>
+
+            <!-- Hidden File Input for Real Uploads -->
+            <input type="file" id="civicFileInput" accept="image/*,video/*" style="display:none;" onchange="NexusZones.handleCivicFileUpload(event)">
+
+            <!-- STEP 1: Live Viewfinder Area -->
+            <div id="civicLiveViewSection">
+              
+              <div class="viewfinder-mockup" id="civicViewfinder">
+                <div class="viewfinder-camera-bg"></div>
+
+                <!-- Shutter Flash Overlay -->
+                <div class="shutter-flash-overlay" id="shutterFlash"></div>
+
+                <!-- Simulated Road Scene SVG -->
+                <svg class="road-scene-svg" id="civicDefaultSvg" viewBox="0 0 600 380" preserveAspectRatio="none">
+                  <polygon points="60,380 240,140 360,140 540,380" fill="#141824" stroke="rgba(245, 158, 11, 0.2)" stroke-width="2"></polygon>
+                  <line x1="300" y1="150" x2="300" y2="370" stroke="#f59e0b" stroke-width="3" stroke-dasharray="16,16" opacity="0.65"></line>
+                  <!-- Pothole illustration -->
+                  <ellipse cx="310" cy="270" rx="90" ry="38" fill="#06080d" stroke="rgba(245, 158, 11, 0.85)" stroke-width="2.5"></ellipse>
+                  <ellipse cx="305" cy="272" rx="60" ry="24" fill="#000"></ellipse>
+                </svg>
+
+                <!-- Live Camera Stream Video Element -->
+                <video id="civicCameraVideo" autoplay playsinline muted style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; inset:0; z-index:1;"></video>
+
+                <img id="civicPreviewImg" src="" alt="Uploaded media preview" style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; inset:0; z-index:2;">
+
+                <!-- HUD Brackets & Reticle -->
+                <div class="camera-hud-brackets">
+                  <div class="corner-bracket corner-tl"></div>
+                  <div class="corner-bracket corner-tr"></div>
+                  <div class="corner-bracket corner-bl"></div>
+                  <div class="corner-bracket corner-br"></div>
+                </div>
+
+                <div class="crosshair-center"></div>
+                <div class="scanner-laser-bar" id="civicLaser"></div>
+
+                <div class="viewfinder-hud-info mono">
+                  <span>SENSOR: 64MP HDR • 1080P/60</span>
+                  <span>GEO: 18.6272° N, 73.8007° E</span>
+                </div>
+
+                <div class="ai-bounding-box" id="civicBoundingBox">
+                  <span>ANOMALOUS CAVITY 98%</span>
+                </div>
+              </div>
+
+              <!-- Primary Capture Trigger Button -->
+              <button class="capture-trigger-btn" id="civicCaptureBtn" onclick="NexusZones.captureCivicMedia()">
+                <i class="fa-solid fa-camera-viewfinder"></i>
+                <span>Capture Photo & Freeze Telemetry</span>
+              </button>
+            </div>
+
+            <!-- STEP 2: Captured Media Review Box (User Confirms Before Analysis!) -->
+            <div class="captured-preview-box" id="civicCapturedPreview">
+              
+              <div class="preview-media-header">
+                <div>
+                  <div style="font-size:16px; font-weight:800; color:#fff;">
+                    <i class="fa-solid fa-circle-check" style="color:var(--color-civic)"></i> Captured Media Review
+                  </div>
+                  <div class="mono" style="font-size:11px; color:var(--text-muted);" id="civicCapturedTimestamp">
+                    CAPTURED: TODAY 10:54 AM • GPS ACCURACY ±1.2m
+                  </div>
+                </div>
+                <span class="preset-chip mono" style="background:rgba(245, 158, 11, 0.2); border-color:var(--color-civic); color:#fbbf24;">
+                  READY FOR AI AUDIT
+                </span>
+              </div>
+
+              <div class="preview-thumbnail-stage">
+                <svg viewBox="0 0 400 220" style="width:100%; height:100%;">
+                  <rect width="100%" height="100%" fill="#10141f"></rect>
+                  <ellipse cx="200" cy="120" rx="80" ry="32" fill="#05070a" stroke="#f59e0b" stroke-width="2"></ellipse>
+                  <text x="200" y="125" fill="#f59e0b" font-family="Roboto Mono" font-size="11" text-anchor="middle" font-weight="bold">TARGET: SEVERE CAVITY (42cm DEPTH)</text>
+                </svg>
+                <div class="watermark-overlay mono">
+                  <i class="fa-solid fa-location-dot"></i> PCMC WARD 14 • MG ROAD CORRIDOR
+                </div>
+              </div>
+
+              <div class="card-actions-row">
+                <button class="btn-action btn-primary-action" style="background:var(--color-civic); color:#000;" id="civicAnalyzeBtn" onclick="NexusZones.startCivicAnalysis()">
+                  <i class="fa-solid fa-bolt"></i> Start AI Analysis & File Docket
+                </button>
+                <button class="btn-action btn-secondary-action" id="civicRetakeBtn" onclick="NexusZones.retakeCivic()">
+                  <i class="fa-solid fa-camera-rotate"></i> Retake Photo
+                </button>
+              </div>
+
+            </div>
+
+            <!-- STEP 3: Structured Municipal Work Order Card -->
+            <div class="result-card-container" id="civicResultCard">
+              
+              <div class="civic-card-header">
+                <div class="civic-thumbnail-wrap">
+                  <i class="fa-solid fa-road-barrier"></i>
+                </div>
+                <div>
+                  <div style="font-size:18px; font-weight:800; color:#fff;">🚧 Issue: Severe Asphalt Cavity (Pothole)</div>
+                  <div class="civic-workorder-tag mono" style="margin-top:4px;">
+                    <i class="fa-solid fa-hashtag"></i> WORK ORDER #MH-CIVIC-8921
+                  </div>
+                </div>
+              </div>
+
+              <div class="dispatch-info-grid mono">
+                <div class="info-tile">
+                  <div class="info-tile-label"><i class="fa-solid fa-building-columns"></i> Jurisdiction</div>
+                  <div class="info-tile-val">PCMC Ward 14</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">MG Road South Bypass</div>
+                </div>
+                <div class="info-tile">
+                  <div class="info-tile-label"><i class="fa-solid fa-clock"></i> Target Resolution SLA</div>
+                  <div class="info-tile-val" style="color:var(--color-civic)">24 Hours</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">Rapid Asphalt Patch Fleet</div>
+                </div>
+                <div class="info-tile">
+                  <div class="info-tile-label"><i class="fa-solid fa-shield-halved"></i> Verification</div>
+                  <div class="info-tile-val" style="color:#34d399">Blockchain Stamped</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">Public Ledger Hash Verified</div>
+                </div>
+              </div>
+
+              <div class="dispatch-success-banner" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                <i class="fa-solid fa-clipboard-check"></i>
+                <div>
+                  <div>Action: Municipal Work Order Filed Successfully</div>
+                  <div style="font-size:12px; opacity:0.85; font-weight:500;">Dispatched to Public Works Dept Fleet • Ward Engineer Assigned</div>
+                </div>
+              </div>
+
+              <div class="card-actions-row">
+                <button class="btn-action btn-primary-action" style="background:var(--color-civic); color:#000;" onclick="NexusApp.showToast('Public Docket #8921 link copied!')">
+                  <i class="fa-solid fa-link"></i> Share Docket Link
+                </button>
+                <button class="btn-action btn-secondary-action" onclick="NexusZones.retakeCivic()">
+                  <i class="fa-solid fa-camera-rotate"></i> New Scan / Capture
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- -----------------------------------------------------------------
+             ZONE 3: MED-SCANNER (THE BLUE ZONE - 2-STEP UPLOAD & OCR)
+             ----------------------------------------------------------------- -->
+        <section class="tab-pane" id="pane-med" role="tabpanel" aria-labelledby="tab-med">
+          
+          <div class="glass-card" style="border-color: rgba(59, 130, 246, 0.35);">
+            
+            <div class="pane-header-box">
+              <div class="pane-intro-text">
+                <h2><i class="fa-solid fa-file-waveform" style="color:var(--color-med)"></i> Med-Scanner AI</h2>
+                <p>Optical character extraction and pharmacological triage for messy handwritten records.</p>
+              </div>
+
+              <div class="civic-mode-pills mono">
+                <button class="mode-pill-btn active" id="medModeUploadBtn" onclick="NexusZones.setMedMode('upload')">
+                  <i class="fa-solid fa-upload"></i> Upload
+                </button>
+                <button class="mode-pill-btn" id="medModeCameraBtn" onclick="NexusZones.setMedMode('camera')">
+                  <i class="fa-solid fa-camera"></i> Live Camera Scan
+                </button>
+              </div>
+            </div>
+
+            <!-- Hidden File Input for Real Med Uploads -->
+            <input type="file" id="medFileInput" accept="image/*,.pdf" style="display:none;" onchange="NexusZones.handleMedFileUpload(event)">
+
+            <!-- STEP 1A: Live Camera Viewfinder for Med Scanner -->
+            <div id="medCameraLiveSection" style="display:none; margin-bottom: 24px;">
+              <div class="viewfinder-mockup" id="medViewfinder">
+                <div class="viewfinder-camera-bg"></div>
+                <!-- Shutter Flash Overlay -->
+                <div class="shutter-flash-overlay" id="medShutterFlash"></div>
+
+                <!-- Live Camera Stream Video Element -->
+                <video id="medCameraVideo" autoplay playsinline muted style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; inset:0; z-index:1;"></video>
+
+                <!-- HUD Brackets & Reticle -->
+                <div class="camera-hud-brackets">
+                  <div class="corner-bracket corner-tl" style="border-color:var(--color-med);"></div>
+                  <div class="corner-bracket corner-tr" style="border-color:var(--color-med);"></div>
+                  <div class="corner-bracket corner-bl" style="border-color:var(--color-med);"></div>
+                  <div class="corner-bracket corner-br" style="border-color:var(--color-med);"></div>
+                </div>
+
+                <div class="crosshair-center"></div>
+                <div class="scanner-laser-bar" style="background:var(--color-med); box-shadow:0 0 16px var(--color-med);"></div>
+
+                <div class="viewfinder-hud-info mono">
+                  <span>MED OCR VIEWFINDER • 60FPS</span>
+                  <span>HOLD DOCUMENT STEADY</span>
+                </div>
+              </div>
+
+              <!-- Primary Capture Trigger Button for Med Scanner -->
+              <button class="capture-trigger-btn" id="medCaptureBtn" style="background:var(--color-med); color:#000;" onclick="NexusZones.captureMedCameraMedia()">
+                <i class="fa-solid fa-camera-viewfinder"></i>
+                <span>Capture Prescription & Freeze Frame</span>
+              </button>
+            </div>
+
+            <!-- STEP 1B: Upload / Dropzone Area -->
+            <div class="med-upload-zone" id="medUploadBox" onclick="document.getElementById('medFileInput').click()">
+              
+              <div class="med-scan-bracket-frame">
+                <div class="med-bracket med-b-tl"></div>
+                <div class="med-bracket med-b-tr"></div>
+                <div class="med-bracket med-b-bl"></div>
+                <div class="med-bracket med-b-br"></div>
+              </div>
+
+              <div class="med-icon-glow">
+                <i class="fa-solid fa-file-prescription"></i>
+              </div>
+
+              <div style="font-size:18px; font-weight:800; color:#fff; margin-bottom:6px;">
+                Upload Messy Medical Records
+              </div>
+              <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+                Drag & drop or click to upload prescription photo, lab document, or hospital discharge summary
+              </div>
+              
+              <div style="margin-top:16px;">
+                <span class="preset-chip mono" style="font-size:11px; background:rgba(59,130,246,0.15); border-color:var(--color-med); color:#93c5fd;">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> CLICK TO UPLOAD OR DROP MEDICAL DOCUMENT HERE
+                </span>
+              </div>
+            </div>
+
+            <!-- STEP 2: Loaded Document Preview Stage (Review Before Extraction - NO DIRECT JUMP!) -->
+            <div class="med-document-preview-stage" id="medDocPreviewStage">
+              
+              <div class="preview-media-header">
+                <div>
+                  <div style="font-size:17px; font-weight:800; color:#fff;">
+                    <i class="fa-solid fa-file-circle-check" style="color:var(--color-med)"></i> Document Loaded & Ready
+                  </div>
+                  <div class="mono" style="font-size:11px; color:var(--text-muted);">
+                    OPTICAL RESOLUTION: 300 DPI • AYUSH & FDA FORMULARY SYNCED
+                  </div>
+                </div>
+                <span class="preset-chip mono" style="background:rgba(59,130,246,0.2); border-color:var(--color-med); color:#93c5fd;">
+                  OCR STAGED
+                </span>
+              </div>
+
+              <div class="doc-info-row">
+                <div class="doc-type-icon">
+                  <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <div>
+                  <div style="font-size:16px; font-weight:700; color:#fff;" id="medLoadedDocName">OPD_Prescription_Dr_Rao_2026.jpg</div>
+                  <div class="mono" style="font-size:12px; color:var(--text-secondary); margin-top:3px;" id="medLoadedDocMeta">Handwritten Doctor Prescription • 2.4 MB</div>
+                </div>
+              </div>
+
+              <div class="card-actions-row">
+                <button class="btn-action btn-primary-action" style="background:var(--color-med);" id="medRunOcrBtn" onclick="NexusZones.startMedAnalysis()">
+                  <i class="fa-solid fa-dna"></i> Run AI Optical Extraction & Triage
+                </button>
+                <button class="btn-action btn-secondary-action" id="medChangeDocBtn" onclick="NexusZones.changeMedDocument()">
+                  <i class="fa-solid fa-arrow-rotate-left"></i> Change Document
+                </button>
+              </div>
+
+            </div>
+
+            <!-- STEP 3: Structured Medical Passport Card -->
+            <div class="result-card-container" id="medResultCard">
+              <div class="med-passport-card">
+                
+                <div class="passport-header">
+                  <div class="passport-title">
+                    <i class="fa-solid fa-id-card-clip" style="color:var(--color-med)"></i>
+                    <span>Emergency Medical Passport</span>
+                  </div>
+                  <div class="blood-badge mono">O+ POSITIVE</div>
+                </div>
+
+                <!-- Highlighted Allergies (Critical for High-Stress Emergency) -->
+                <div class="allergy-alert-box">
+                  <div class="allergy-label">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Allergies (Highlighted / Severe Contraindications)</span>
+                  </div>
+                  <div class="allergy-tags-list">
+                    <span class="allergy-pill"><i class="fa-solid fa-ban"></i> Penicillin (Severe Anaphylaxis)</span>
+                    <span class="allergy-pill"><i class="fa-solid fa-ban"></i> Sulfa Antibiotics</span>
+                    <span class="allergy-pill"><i class="fa-solid fa-circle-exclamation"></i> Aspirin / NSAIDs</span>
+                  </div>
+                </div>
+
+                <!-- Current Medications -->
+                <div class="med-section-group">
+                  <div class="med-section-heading">
+                    <i class="fa-solid fa-pills" style="color:var(--color-med)"></i> Current Active Prescriptions
+                  </div>
+                  <div class="med-pill-item">
+                    <div>
+                      <div class="med-pill-name">Metformin Hydrochloride</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Oral Tablet • Twice daily after meals</div>
+                    </div>
+                    <div class="med-pill-dosage mono">500 MG</div>
+                  </div>
+                  <div class="med-pill-item">
+                    <div>
+                      <div class="med-pill-name">Atorvastatin Calcium</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Oral Tablet • Once daily at bedtime</div>
+                    </div>
+                    <div class="med-pill-dosage mono">20 MG</div>
+                  </div>
+                </div>
+
+                <!-- Past Medical History -->
+                <div class="med-section-group">
+                  <div class="med-section-heading">
+                    <i class="fa-solid fa-notes-medical" style="color:var(--color-med)"></i> Verified Clinical History
+                  </div>
+                  <div class="info-tile mono" style="font-size:12px; color:#cbd5e1; line-height:1.6;">
+                    • Type 2 Diabetes Mellitus (Controlled, HbA1c: 6.4)<br>
+                    • Essential Hypertension (Grade 1, Monitored)<br>
+                    • Laparoscopic Appendectomy (2019, No Complications)
+                  </div>
+                </div>
+
+                <div class="card-actions-row" style="margin-top:18px;">
+                  <button class="btn-action btn-primary-action" style="background:var(--color-med);" onclick="NexusApp.showToast('Medical Passport shared via Encrypted NFC/Token')">
+                    <i class="fa-solid fa-share-nodes"></i> Share with Paramedic
+                  </button>
+                  <button class="btn-action btn-secondary-action" onclick="NexusZones.changeMedDocument()">
+                    <i class="fa-solid fa-rotate-left"></i> Rescan / Upload New
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- -----------------------------------------------------------------
+             ZONE 4: SCAM SHIELD (THE GREEN ZONE)
+             ----------------------------------------------------------------- -->
+        <section class="tab-pane" id="pane-shield" role="tabpanel" aria-labelledby="tab-shield">
+          
+          <div class="glass-card" style="border-color: rgba(16, 185, 129, 0.35);">
+            
+            <div class="pane-header-box">
+              <div class="pane-intro-text">
+                <h2><i class="fa-solid fa-shield-halved" style="color:var(--color-shield)"></i> Scam Shield Sentinel</h2>
+                <p>Zero-day phishing heuristics, fake document/challan inspection & National 1930 fraud database cross-reference.</p>
+              </div>
+
+              <!-- Mode Switcher: Text/Link vs Document/Challan -->
+              <div class="shield-mode-pills mono">
+                <button class="mode-pill-btn active" id="shieldModeTextBtn" data-mode="text" onclick="NexusZones.setShieldMode('text')">
+                  <i class="fa-solid fa-link"></i> Text & Links
+                </button>
+                <button class="mode-pill-btn" id="shieldModeDocBtn" data-mode="doc" onclick="NexusZones.setShieldMode('doc')">
+                  <i class="fa-solid fa-file-shield"></i> Document / Challan
+                </button>
+              </div>
+            </div>
+
+            <!-- Hidden File Input for Document/Challan/Notice Uploads -->
+            <input type="file" id="shieldFileInput" accept="image/*,.pdf" style="display:none;" onchange="NexusZones.handleShieldDocUpload(event)">
+
+            <!-- MODE A: Text / Link / SMS Input Container -->
+            <div id="shieldTextSection">
+              <div class="shield-input-container">
+                <textarea class="shield-textarea" id="shieldInput" placeholder="Paste suspicious SMS, WhatsApp forward, email excerpt, or URL here to verify threat signature..."></textarea>
+                
+                <div class="shield-tools-bar">
+                  <div style="font-size:12px; color:var(--text-muted);" id="shieldInputCounter">0 chars</div>
+                  <button class="icon-action-btn" title="Paste from Clipboard" onclick="NexusZones.pasteClipboard()">
+                    <i class="fa-solid fa-paste"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Analyze Trigger Button for Text -->
+              <button class="capture-trigger-btn" style="background: linear-gradient(135deg, #10b981, #059669); color:#fff;" onclick="NexusZones.triggerShieldScan()">
+                <i class="fa-solid fa-magnifying-glass-shield"></i>
+                <span>Verify Threat Signature</span>
+              </button>
+            </div>
+
+            <!-- MODE B: Document / Challan / Legal Notice Upload Container -->
+            <div id="shieldDocSection" style="display:none;">
+              
+              <!-- Upload Box -->
+              <div class="shield-upload-zone" id="shieldUploadBox" onclick="document.getElementById('shieldFileInput').click()">
+                <div class="med-scan-bracket-frame">
+                  <div class="med-bracket med-b-tl" style="border-color:var(--color-shield)"></div>
+                  <div class="med-bracket med-b-tr" style="border-color:var(--color-shield)"></div>
+                  <div class="med-bracket med-b-bl" style="border-color:var(--color-shield)"></div>
+                  <div class="med-bracket med-b-br" style="border-color:var(--color-shield)"></div>
+                </div>
+
+                <div class="med-icon-glow" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:var(--color-shield);">
+                  <i class="fa-solid fa-file-shield"></i>
+                </div>
+
+                <div style="font-size:18px; font-weight:800; color:#fff; margin-bottom:6px;">
+                  Upload or Scan Suspicious Document / Challan / Notice
+                </div>
+                <div style="font-size:13px; color:var(--text-secondary); line-height:1.5; max-width:540px; margin:0 auto;">
+                  Upload Traffic E-Challans, Police FIRs, Court Summons, or Bank letters. AI audits forged government emblems, fake QR payment links & coercive threats.
+                </div>
+                
+                <div style="margin-top:16px;">
+                  <span class="preset-chip mono" style="font-size:11px; background:rgba(16,185,129,0.15); border-color:var(--color-shield); color:#6ee7b7;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> CLICK TO UPLOAD OR DROP PDF / PHOTO HERE
+                  </span>
+                </div>
+              </div>
+
+              <!-- Loaded Document Review Stage (2-step confirmation) -->
+              <div class="shield-document-preview-stage" id="shieldDocPreviewStage">
+                
+                <div class="preview-media-header">
+                  <div>
+                    <div style="font-size:17px; font-weight:800; color:#fff;">
+                      <i class="fa-solid fa-file-circle-check" style="color:var(--color-shield)"></i> Document Staged for Forensic Audit
+                    </div>
+                    <div class="mono" style="font-size:11px; color:var(--text-muted);">
+                      RESOLUTION: 300 DPI • NATIONAL CYBERCRIME 1930 HEURISTICS ACTIVE
+                    </div>
+                  </div>
+                  <span class="preset-chip mono" style="background:rgba(16,185,129,0.2); border-color:var(--color-shield); color:#6ee7b7;">
+                    FORENSIC READY
+                  </span>
+                </div>
+
+                <div class="doc-info-row">
+                  <div class="doc-type-icon" style="background:rgba(16,185,129,0.18); border-color:var(--color-shield); color:var(--color-shield);">
+                    <i class="fa-solid fa-receipt" id="shieldDocTypeIcon"></i>
+                  </div>
+                  <div>
+                    <div style="font-size:16px; font-weight:700; color:#fff;" id="shieldLoadedDocName">Traffic_E-Challan_Pending_Notice_MH12.pdf</div>
+                    <div class="mono" style="font-size:12px; color:var(--text-secondary); margin-top:3px;" id="shieldLoadedDocMeta">Municipal / Police Traffic E-Challan Notice • 1.8 MB</div>
+                  </div>
+                </div>
+
+                <div class="card-actions-row">
+                  <button class="btn-action btn-primary-action" style="background:var(--color-shield); color:#000;" id="shieldRunDocAuditBtn" onclick="NexusZones.startShieldDocAnalysis()">
+                    <i class="fa-solid fa-stamp"></i> Run Forensic Seal & Payment Link Audit
+                  </button>
+                  <button class="btn-action btn-secondary-action" id="shieldChangeDocBtn" onclick="NexusZones.changeShieldDocument()">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Change Document
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Structured Forensic Output Card -->
+            <div class="result-card-container" id="shieldResultCard" style="margin-top:20px;">
+              <div class="scam-verdict-card" id="scamVerdictBox">
+                
+                <!-- Stamped Forensic Badge -->
+                <div class="official-forensic-stamp mono" id="stampBadge">
+                  FRAUDULENT DOCUMENT
+                </div>
+
+                <div class="scam-alert-headline" id="scamAlertHeadline">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span id="scamHeadlineText">🚨 SCAM DETECTED: Fake Traffic E-Challan Notice</span>
+                </div>
+                <div style="font-size:13px; color:#fca5a5; line-height:1.5;" id="scamSubMsg">
+                  Forged state emblem detected with malicious third-party payment APK link designed to compromise banking credentials.
+                </div>
+
+                <!-- Threat Risk Meter -->
+                <div class="threat-meter-wrap">
+                  <div class="meter-label-row mono">
+                    <span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-skull"></i> THREAT SEVERITY SCORE</span>
+                    <span id="threatScoreVal" style="color:#ef4444; font-weight:800;">99.2% CRITICAL FRAUD</span>
+                  </div>
+                  <div class="meter-bar-track">
+                    <div class="meter-bar-fill" id="threatBarFill"></div>
+                  </div>
+                </div>
+
+                <!-- Official Portal Verification Banner -->
+                <div class="official-portal-banner mono" id="officialPortalBanner">
+                  <i class="fa-solid fa-globe"></i>
+                  <div>
+                    <span style="font-size:10px; color:var(--text-muted); display:block; text-transform:uppercase;">Official Sovereign Portal for Verification:</span>
+                    <span style="color:#fff; font-weight:700;" id="officialPortalUrl">echallan.parivahan.gov.in</span>
+                  </div>
+                </div>
+
+                <!-- Forensic Breakdown List -->
+                <ul class="scam-evidence-list" id="scamEvidenceList">
+                  <li>
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span><strong>Forged Official Emblem:</strong> Pixelated state police logo with mismatched typography not conforming to Government of India seal standards.</span>
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span><strong>Malicious APK Payload:</strong> Directs user to download an untrusted APK file (`parivahan-pay.apk`) rather than official government payment gateway.</span>
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span><strong>Coercive Urgency:</strong> Threatens non-bailable court warrant within 2 hours to induce panic and force unverified payment.</span>
+                  </li>
+                </ul>
+
+                <div class="card-actions-row">
+                  <button class="btn-action btn-primary-action" style="background:#ef4444;" onclick="NexusApp.showToast('Incident Report forwarded to 1930 Cyber Cell & Citizen Portal')">
+                    <i class="fa-solid fa-shield-virus"></i> Report to 1930 Cyber Cell
+                  </button>
+                  <button class="btn-action btn-secondary-action" onclick="NexusApp.showToast('Forensic audit certificate generated and downloaded!')">
+                    <i class="fa-solid fa-file-pdf"></i> Download Audit PDF
+                  </button>
+                  <button class="btn-action btn-secondary-action" onclick="NexusZones.resetShield()">
+                    <i class="fa-solid fa-rotate-left"></i> Check New
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- ===================================================================
+           RIGHT COLUMN: LIVE TELEMETRY & MISSION CONTROL RAIL
+           =================================================================== -->
+      <aside class="telemetry-rail-column" role="complementary" aria-label="Live Mission Telemetry">
+        
+        <!-- Live Mission Status Card -->
+        <div class="telemetry-card">
+          <div class="rail-title mono">
+            <i class="fa-solid fa-tower-broadcast" style="color:var(--accent-color)"></i>
+            <span>Live Mission Status</span>
+          </div>
+
+          <div class="active-responders-list mono">
+            <div class="responder-item">
+              <div class="responder-left">
+                <i class="fa-solid fa-shield-halved" style="color:#38bdf8"></i>
+                <span>Police Command (112)</span>
+              </div>
+              <span class="responder-status">STANDBY</span>
+            </div>
+
+            <div class="responder-item">
+              <div class="responder-left">
+                <i class="fa-solid fa-truck-medical" style="color:#ef4444"></i>
+                <span>Trauma Ambulance (108)</span>
+              </div>
+              <span class="responder-status">AVAILABLE</span>
+            </div>
+
+            <div class="responder-item">
+              <div class="responder-left">
+                <i class="fa-solid fa-person-digging" style="color:#f59e0b"></i>
+                <span>Municipal PWD Ward 14</span>
+              </div>
+              <span class="responder-status">ONLINE</span>
+            </div>
+
+            <div class="responder-item">
+              <div class="responder-left">
+                <i class="fa-solid fa-user-shield" style="color:#10b981"></i>
+                <span>Cyber Sentinel (1930)</span>
+              </div>
+              <span class="responder-status">MONITORING</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rapid Emergency Hotline Speed-Dial -->
+        <div class="telemetry-card">
+          <div class="rail-title mono">
+            <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i>
+            <span>Rapid Emergency Hotlines</span>
+          </div>
+
+          <div class="quick-hotline-list mono">
+            <button class="quick-hotline-btn" onclick="NexusZones.call112()">
+              <span class="hotline-num" style="color:#ef4444">112</span>
+              <span class="hotline-name">Central SOS</span>
+            </button>
+            <button class="quick-hotline-btn" onclick="NexusApp.showToast('Routing call to 108 Ambulance...')">
+              <span class="hotline-num" style="color:#38bdf8">108</span>
+              <span class="hotline-name">Medical Triage</span>
+            </button>
+            <button class="quick-hotline-btn" onclick="NexusApp.showToast('Routing call to 101 Fire...')">
+              <span class="hotline-num" style="color:#f59e0b">101</span>
+              <span class="hotline-name">Fire Rescue</span>
+            </button>
+            <button class="quick-hotline-btn" onclick="NexusApp.showToast('Routing call to 1930 Cyber Helpline...')">
+              <span class="hotline-num" style="color:#10b981">1930</span>
+              <span class="hotline-name">Cyber Crime</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Protocol & Keyboard Shortcuts -->
+        <div class="telemetry-card">
+          <div class="rail-title mono">
+            <i class="fa-solid fa-keyboard" style="color:var(--text-secondary)"></i>
+            <span>Hotkeys & Accessibility</span>
+          </div>
+
+          <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;" class="mono">
+            • <span class="key-badge">1</span> SOS Distress Apex<br>
+            • <span class="key-badge">2</span> Civic Action Viewfinder<br>
+            • <span class="key-badge">3</span> Med-Scanner AI<br>
+            • <span class="key-badge">4</span> Scam Shield Sentinel
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+    <!-- ===================================================================
+         SHARED AI PROCESSING MODAL OVERLAY
+         =================================================================== -->
+    <div class="nexus-processing-modal" id="processingModal" role="dialog" aria-modal="true">
+      <div class="processing-box-card">
+        <div class="radar-spinner" id="processingSpinner"></div>
+        <div class="processing-title" id="procTitle">Triangulating Distress Beacon</div>
+        <div class="mono" style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;" id="procSubtitle">
+          Multimodal neural inference in progress...
+        </div>
+
+        <div class="processing-steps mono" id="procStepList">
+          <div class="proc-step-item done" id="step1">
+            <i class="fa-solid fa-circle-check"></i> <span>Acoustic pattern matched</span>
+          </div>
+          <div class="proc-step-item" id="step2">
+            <i class="fa-solid fa-spinner fa-spin"></i> <span>Locking NavIC satellite telemetry</span>
+          </div>
+          <div class="proc-step-item" id="step3">
+            <i class="fa-regular fa-circle"></i> <span>Transmitting encrypted packet to 112</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Sticky Bottom Navigation (Auto-activates on screen <820px) -->
+    <nav class="mobile-bottom-nav" role="tablist" aria-label="Mobile Zone Dock">
+      <button class="mobile-nav-btn active" data-zone="sos" onclick="NexusApp.switchTab('sos')">
+        <i class="fa-solid fa-tower-broadcast"></i>
+        <span>SOS</span>
+      </button>
+
+      <button class="mobile-nav-btn" data-zone="civic" onclick="NexusApp.switchTab('civic')">
+        <i class="fa-solid fa-person-digging"></i>
+        <span>Civic</span>
+      </button>
+
+      <button class="mobile-nav-btn" data-zone="med" onclick="NexusApp.switchTab('med')">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <span>Med</span>
+      </button>
+
+      <button class="mobile-nav-btn" data-zone="shield" onclick="NexusApp.switchTab('shield')">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Shield</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Modular Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/hardware.js"></script>
+  <script src="js/zones.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

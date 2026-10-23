@@ -1,0 +1,12 @@
+{
+  "name": "nexus",
+  "version": "1.0.0",
+  "description": "Universal Bridge multimodal emergency and civic action engine",
+  "main": "api/nexus-engine.js",
+  "scripts": {
+    "start": "node api/nexus-engine.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0"
+  }
+}
