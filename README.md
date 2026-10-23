@@ -7,10 +7,10 @@ Nexus is an elite, multimodal emergency and civic action command web application
 ## 🚨 Core Zones & Capabilities
 
 1. **SOS Distress (The Red Zone)**
-   - **Tactile Hold-to-Speak**: 1.5-second physical press-and-hold trigger with SVG vector circular progress animation.
-   - **Live Speech Recognition**: Transcribes distress audio in real-time using browser SpeechRecognition APIs.
-   - **Dynamic Emergency Routing**: Accurately classifies voice alerts into **Fire Emergency (101)**, **Armed Threat / Crime (112)**, **Road Traffic Collision (1073)**, or **Medical Trauma (108)** with incident-specific triage guidance.
-   - **Instant Geolocation**: Triangulates high-accuracy GPS coordinates (`±1.2m`) via `navigator.geolocation`.
+   - **Interactive Category Triage**: 1-tap direct selection between **Medical Emergency / Trauma (108)**, **Police / Crime (112)**, **Municipal / Civic Hazard (1916)**, **Fire Emergency (101)**, and **Road Traffic Collision (1073)**.
+   - **One-Tap Instant Dispatch Beacon**: Rapid distress beacon broadcast locking high-accuracy NavIC / GPS coordinates (`±1.2m`).
+   - **Smart Incident Note Analysis**: Optional natural-language input field that auto-detects injury ("chot", "khoon"), crime ("chori", "threat"), municipal issues ("khadda", "wire"), fire ("aag"), or collision.
+   - **Instant Direct Helpline Bar**: Direct hotline dialers for 108 Ambulance, 112 Police, 1916 Municipal Corporation, and 101 Fire Brigade.
 
 2. **Civic Action (The Yellow Zone)**
    - **Live Viewfinder & Camera Integration**: Streams device rear camera (`environment`) with HUD corner brackets and scanning laser overlay.
@@ -30,7 +30,7 @@ Nexus is an elite, multimodal emergency and civic action command web application
 
 ## 🛠️ Architecture & Tech Stack
 
-- **Frontend**: Pure Vanilla JavaScript (ES6+), HTML5 Web APIs (`MediaRecorder`, `getUserMedia`, `SpeechRecognition`, `Geolocation`), and Vanilla CSS3 Glassmorphism.
+- **Frontend**: Pure Vanilla JavaScript (ES6+), HTML5 Web APIs (`getUserMedia`, `Geolocation`), and Vanilla CSS3 Glassmorphism.
 - **Backend**: Vercel Serverless Function (`/api/nexus-engine.js`) integrating Google Gemini 1.5 Flash via `@google/generative-ai`.
 - **Audio Engine**: Procedural Web Audio API sound synthesizer (zero external mp3 assets).
 - **Responsive**: Mobile-first adaptive layout with desktop two-column command center and sticky mobile glass dock.

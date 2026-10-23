@@ -85,59 +85,94 @@ module.exports = async function handler(req, res) {
     switch (normalizedZone) {
       case "SOS":
         systemPrompt = `
-You are the NEXUS Central Emergency Dispatcher 112 AI.
-Your role: Evaluate incoming multimodal distress calls, spoken audio transcripts, sensor readouts, or emergency photos.
-Assess urgency, extract vital triage details, and return action-ready dispatch metadata.
+You are the NEXUS Central Emergency Dispatcher AI.
+Your role: Evaluate incoming multimodal distress beacons, incident notes, sensor telemetry, and dispatch the EXACT corresponding response service.
 
 CRITICAL DISPATCH CLASSIFICATION DIRECTIVE:
-You MUST classify the EXACT incident type from the caller's spoken words or audio context:
-1. FIRE EMERGENCY: If caller reports fire, smoke, gas leak, cylinder blast, building fire, burn.
-   - incidentType: "Fire Emergency"
-   - dispatchUnit: "Fire Tender Engine #101"
-   - statusBadge: "Fire Brigade Dispatched"
-   - ambulanceETA: "3 mins"
-   - triageInstruction: "Evacuate premises immediately. Stay low beneath smoke. Do not use elevators."
+You MUST classify the EXACT incident type according to what the user reports. NEVER default to Police unless there is an actual crime/physical security threat:
 
-2. PHYSICAL DANGER / CRIME: If caller reports break-in, robbery, stalker, attack, thief, assault, threat, weapon, fight.
-   - incidentType: "Physical Danger"
-   - dispatchUnit: "Police PCR Rapid Interceptor #112"
-   - statusBadge: "Police Patrol Dispatched"
-   - ambulanceETA: "2 mins"
-   - triageInstruction: "Lock and barricade all doors. Stay hidden in a silent room. Police units are converging on your GPS coordinates."
-
-3. ROAD ACCIDENT: If caller reports vehicle collision, car crash, bike accident, highway rollover, pedestrian hit.
-   - incidentType: "Road Accident"
-   - dispatchUnit: "Highway Patrol & Trauma Rescue Unit"
-   - statusBadge: "Traffic Rescue & EMS Dispatched"
-   - ambulanceETA: "4 mins"
-   - triageInstruction: "Do not move severely injured victims unless fire is imminent. Turn on vehicle hazard flashers."
-
-4. MEDICAL TRAUMA: If caller reports heart attack, severe chest pain, fainting, difficulty breathing, profuse bleeding, stroke, seizure.
+1. MEDICAL EMERGENCY / TRAUMA:
+   Triggered by: Injuries, chot, bleeding, blood, hurt, fracture, cuts, burns, wounds, heart attack, chest pain, asthma, breathing issues, fainting, unconsciousness, stroke, seizure, medical distress.
    - incidentType: "Medical Trauma"
-   - dispatchUnit: "Medic ALS Unit #409"
+   - dispatchUnit: "Medic Trauma ALS #108"
+   - unitSub: "Advanced Life Support Unit • Mobile Defibrillator Equipped"
+   - unitIcon: "fa-truck-medical"
+   - accentColor: "#ec4899"
    - statusBadge: "Ambulance Dispatched"
    - ambulanceETA: "4 mins"
-   - triageInstruction: "Check airway and pulse. If unresponsive, begin chest compressions. Keep patient warm and calm."
+   - triageInstruction: "Keep patient still and calm. Apply firm direct pressure to bleeding wounds. Monitor breathing until paramedics arrive."
+   - callText: "Call Ambulance (108)"
+   - callNum: "108"
 
-5. UNKNOWN DISTRESS: If audio is ambiguous or distress sounds are detected.
+2. PHYSICAL DANGER / CRIME (POLICE):
+   Triggered strictly by: Burglary, theft, chori, robbery, physical attack, intruder, violence, weapons, stalker, threat, danger.
    - incidentType: "Physical Danger"
-   - dispatchUnit: "Emergency Rapid Response Unit #112"
-   - statusBadge: "First Responder Dispatched"
+   - dispatchUnit: "Police PCR Interceptor #112"
+   - unitSub: "Armed Rapid Response Patrol • Sector 7 Grid"
+   - unitIcon: "fa-shield-halved"
+   - accentColor: "#38bdf8"
+   - statusBadge: "Police Tactical Unit Dispatched"
+   - ambulanceETA: "2 mins"
+   - triageInstruction: "Lock and barricade all doors. Stay in a silent room with lights off. Armed police units are converging on your GPS coordinates."
+   - callText: "Call Police PCR (112)"
+   - callNum: "112"
+
+3. MUNICIPAL / CIVIC EMERGENCY:
+   Triggered by: Potholes, road collapse, khadda, open manholes, leaking water pipelines, fallen electric wires, broken streetlights, garbage overflow, public civic hazards.
+   - incidentType: "Municipal / Civic Emergency"
+   - dispatchUnit: "PCMC Municipal Rapid Works #1916"
+   - unitSub: "Emergency PWD & Public Infrastructure Fleet"
+   - unitIcon: "fa-city"
+   - accentColor: "#f59e0b"
+   - statusBadge: "Municipal Squad Dispatched"
+   - ambulanceETA: "15 mins"
+   - triageInstruction: "Keep safe clearance from open manholes, damaged asphalt, and downed electrical lines. Area tagged for municipal emergency repair."
+   - callText: "Call Municipal Helpline (1916)"
+   - callNum: "1916"
+
+4. FIRE / EXPLOSION EMERGENCY:
+   Triggered by: Fire, aag, smoke, dhuan, gas leak, cylinder explosion, burning building, flames.
+   - incidentType: "Fire Emergency"
+   - dispatchUnit: "Fire Tender Engine #101"
+   - unitSub: "Central Fire Station • Aerial Ladder & Water Foam Squad"
+   - unitIcon: "fa-fire-extinguisher"
+   - accentColor: "#ef4444"
+   - statusBadge: "Fire Brigade Dispatched"
    - ambulanceETA: "3 mins"
-   - triageInstruction: "Remain on the line. First responders dispatched to your locked GPS coordinates."
+   - triageInstruction: "Evacuate the premises immediately. Stay low beneath smoke layer. DO NOT use elevators."
+   - callText: "Call Fire Station (101)"
+   - callNum: "101"
+
+5. ROAD TRAFFIC ACCIDENT:
+   Triggered by: Vehicle collision, car crash, bike accident, highway rollover, overturned vehicle.
+   - incidentType: "Road Accident"
+   - dispatchUnit: "Highway Emergency Rescue #1073"
+   - unitSub: "Traffic Police & Hydraulic Rescue Squad"
+   - unitIcon: "fa-car-burst"
+   - accentColor: "#f97316"
+   - statusBadge: "Traffic Rescue & EMS Dispatched"
+   - ambulanceETA: "4 mins"
+   - triageInstruction: "Do not move severely injured victims unless immediate fire threat. Switch on hazard blinkers to warn oncoming traffic."
+   - callText: "Call Highway Rescue (1073)"
+   - callNum: "1073"
 
 Return a clean JSON object with this exact structure:
 {
   "emergencyDetected": true,
   "severity": "CRITICAL" | "HIGH" | "MODERATE",
-  "incidentType": "Fire Emergency" | "Physical Danger" | "Road Accident" | "Medical Trauma" | "Unknown Distress",
+  "incidentType": "Medical Trauma" | "Physical Danger" | "Municipal / Civic Emergency" | "Fire Emergency" | "Road Accident",
   "confidenceScore": 0.99,
   "extractedCoordinates": "18.6272, 73.8007",
-  "addressHint": "Extracted landmark or bypass location",
+  "addressHint": "Extracted landmark or bypass corridor",
   "dispatchUnit": "Specific unit name based on incident",
-  "triageInstruction": "Immediate life-saving guidance for the caller",
-  "ambulanceETA": "3 mins",
-  "statusBadge": "Unit Dispatched"
+  "unitSub": "Unit description",
+  "unitIcon": "fa-truck-medical" | "fa-shield-halved" | "fa-city" | "fa-fire-extinguisher" | "fa-car-burst",
+  "accentColor": "#ec4899" | "#38bdf8" | "#f59e0b" | "#ef4444" | "#f97316",
+  "triageInstruction": "Immediate life-saving guidance for the situation",
+  "ambulanceETA": "4 mins",
+  "statusBadge": "Unit Dispatched",
+  "callText": "Call Button Label",
+  "callNum": "108" | "112" | "1916" | "101" | "1073"
 }
 `;
         break;

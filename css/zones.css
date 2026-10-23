@@ -224,68 +224,180 @@
   margin-top: 2px;
 }
 
-.hold-progress-svg {
-  position: absolute;
+/* Category Selector Grid */
+.sos-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
   width: 100%;
-  height: 100%;
-  max-width: 224px;
-  max-height: 224px;
-  transform: rotate(-90deg);
-  pointer-events: none;
-  z-index: 6;
+  max-width: 680px;
+  margin-bottom: 24px;
+  box-sizing: border-box;
 }
 
-.hold-progress-circle {
-  stroke-dasharray: 630;
-  stroke-dashoffset: 630;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.1s linear;
-}
-
-.audio-waves-container {
-  width: 100%;
-  max-width: 360px;
-  height: 48px;
+.sos-cat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  opacity: 0;
-  transform: scaleY(0.4);
-  transition: all 0.25s ease;
-  margin: 6px auto 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.22s var(--ease-smooth);
+  user-select: none;
 }
 
-.audio-waves-container.active {
-  opacity: 1;
-  transform: scaleY(1);
+.sos-cat-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
 }
 
-.wave-bar {
-  width: 4px;
-  height: 10px;
+.sos-cat-card.active {
+  background: rgba(var(--cat-color-rgb, 239, 68, 68), 0.16);
+  border-color: var(--cat-color, #ef4444);
+  box-shadow: 0 0 20px rgba(var(--cat-color-rgb, 239, 68, 68), 0.35);
+  transform: translateY(-2px);
+}
+
+.sos-cat-icon {
+  font-size: 20px;
+  margin-bottom: 6px;
+  color: var(--cat-color, #fff);
+  transition: transform 0.2s ease;
+}
+
+.sos-cat-card.active .sos-cat-icon {
+  transform: scale(1.15);
+}
+
+.sos-cat-title {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+.sos-cat-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.sos-cat-card.active .sos-cat-sub {
+  color: #f1f5f9;
+}
+
+@media (max-width: 768px) {
+  .sos-cat-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sos-cat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+}
+
+/* Incident Note Input Bar */
+.sos-note-input-wrap {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: 4px 6px 4px 14px;
+  margin-top: 18px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.sos-note-input-wrap:focus-within {
+  border-color: var(--color-sos);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.25);
+}
+
+.sos-note-input-wrap i {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-right: 10px;
+}
+
+.sos-note-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 12.5px;
+  padding: 8px 0;
+}
+
+.sos-note-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.sos-note-submit-btn {
   background: var(--color-sos);
-  border-radius: 4px;
-  box-shadow: 0 0 10px var(--color-sos);
-  transition: height 0.1s ease;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
-.audio-waves-container.active .wave-bar {
-  animation: wave-bounce 0.6s ease-in-out infinite alternate;
+.sos-note-submit-btn:hover {
+  filter: brightness(1.15);
+  transform: scale(1.03);
 }
 
-.audio-waves-container .wave-bar:nth-child(1) { animation-delay: 0.1s; }
-.audio-waves-container .wave-bar:nth-child(2) { animation-delay: 0.3s; }
-.audio-waves-container .wave-bar:nth-child(3) { animation-delay: 0.15s; }
-.audio-waves-container .wave-bar:nth-child(4) { animation-delay: 0.4s; }
-.audio-waves-container .wave-bar:nth-child(5) { animation-delay: 0.2s; }
-.audio-waves-container .wave-bar:nth-child(6) { animation-delay: 0.35s; }
-.audio-waves-container .wave-bar:nth-child(7) { animation-delay: 0.05s; }
-.audio-waves-container .wave-bar:nth-child(8) { animation-delay: 0.25s; }
+/* Direct Hotline Buttons */
+.sos-hotlines-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
 
-@keyframes wave-bounce {
-  0% { height: 8px; }
-  100% { height: 40px; }
+.hotline-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.hotline-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
 }
 
 .sos-instruction {
@@ -293,7 +405,7 @@
   color: var(--text-secondary);
   font-weight: 500;
   text-align: center;
-  margin-top: 4px;
+  margin-top: 8px;
   padding: 0 10px;
   line-height: 1.4;
 }

@@ -16,73 +16,62 @@ const NexusZones = (() => {
   let currentDocLoaded = null;
 
   /* --------------------------------------------------------------------------
-     1. SOS CONTROLLER
+     1. SOS CONTROLLER (CLEAN CATEGORY DISPATCH — NO VOICE RECORDING CLUTTER)
      -------------------------------------------------------------------------- */
-  const initSos = () => {
-    const sosBtn = document.getElementById('sosBtn');
-    const circle = document.getElementById('sosProgressCircle');
-    const waves = document.getElementById('sosAudioWaves');
-    const instruction = document.getElementById('sosInstructionText');
-    const circumference = 2 * Math.PI * 100; // ~630
-
-    if (!sosBtn || !circle) return;
-
-    circle.style.strokeDasharray = circumference;
-    circle.style.strokeDashoffset = circumference;
-
-    const startHold = (e) => {
-      if (e.type === 'touchstart') e.preventDefault();
-      sosHoldStartTime = Date.now();
-      sosBtn.classList.add('pressing');
-      if (waves) waves.classList.add('active');
-      if (instruction) instruction.innerHTML = '<span style="color:#ef4444; font-weight:800;">TRANSMITTING BIOMETRICS... HOLD FIRM</span>';
-      NexusAudio.play('holdPulse');
-
-      clearInterval(sosHoldInterval);
-      sosHoldInterval = setInterval(() => {
-        const elapsed = Date.now() - sosHoldStartTime;
-        const progress = Math.min(elapsed / SOS_HOLD_THRESHOLD_MS, 1);
-        circle.style.strokeDashoffset = circumference - progress * circumference;
-
-        if (progress >= 1) {
-          clearInterval(sosHoldInterval);
-        }
-      }, 25);
-    };
-
-    const endHold = () => {
-      if (!sosHoldStartTime) return;
-      const elapsed = Date.now() - sosHoldStartTime;
-      sosHoldStartTime = 0;
-      clearInterval(sosHoldInterval);
-
-      sosBtn.classList.remove('pressing');
-      if (waves) waves.classList.remove('active');
-
-      if (elapsed >= SOS_HOLD_THRESHOLD_MS) {
-        circle.style.strokeDashoffset = 0;
-        triggerSosEmergency();
-      } else {
-        circle.style.strokeDashoffset = circumference;
-        if (instruction) instruction.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Held too short. Press & hold 1.5s to broadcast';
-      }
-    };
-
-    sosBtn.addEventListener('mousedown', startHold);
-    window.addEventListener('mouseup', endHold);
-
-    sosBtn.addEventListener('touchstart', startHold, { passive: false });
-    window.addEventListener('touchend', endHold);
-    window.addEventListener('touchcancel', endHold);
-  };
-
-  /* --------------------------------------------------------------------------
-     1B. DYNAMIC SOS EMERGENCY CLASSIFICATION & DISPATCH PROFILES
-     -------------------------------------------------------------------------- */
-  let currentEmergencyCallNum = "112";
+  let activeSosCategory = "medical"; // default active category: 'medical' | 'police' | 'municipal' | 'fire' | 'accident'
+  let currentEmergencyCallNum = "108";
 
   const EMERGENCY_PROFILES = {
+    medical: {
+      key: "medical",
+      incidentType: "Medical Emergency / Trauma",
+      severity: "CRITICAL",
+      alertTitle: "🚨 Medical Emergency Confirmed",
+      alertSub: "Acute Physiological Distress / Injury • Priority 1 ALS Unit",
+      dispatchUnit: "Medic Trauma ALS #108",
+      unitSub: "Advanced Life Support Unit • Mobile Defibrillator Equipped",
+      unitIcon: "fa-truck-medical",
+      accentColor: "#ec4899",
+      statusTitle: "Ambulance Dispatched",
+      statusSub: "ETA: 4 mins • Sirens Activated • Green Corridor Cleared",
+      triageInstruction: "Keep patient still and calm. Apply firm direct pressure to bleeding wounds. Paramedics are en route.",
+      callText: "Call Ambulance (108)",
+      callNum: "108"
+    },
+    police: {
+      key: "police",
+      incidentType: "Police / Crime Alert",
+      severity: "CRITICAL",
+      alertTitle: "🚨 Physical Threat & Crime Alert",
+      alertSub: "Hostile Danger Pattern Confirmed • Police Tactical Priority 1",
+      dispatchUnit: "Police PCR Interceptor #112",
+      unitSub: "Armed Rapid Response Patrol • Sector 7 Patrol Grid",
+      unitIcon: "fa-shield-halved",
+      accentColor: "#38bdf8",
+      statusTitle: "Police Tactical Unit Dispatched",
+      statusSub: "ETA: 2 mins • GPS Triangulation Locked • High-Speed Intercept",
+      triageInstruction: "Lock and barricade all doors. Stay hidden in a silent room with lights off. Police tactical units are converging.",
+      callText: "Call Police PCR (112)",
+      callNum: "112"
+    },
+    municipal: {
+      key: "municipal",
+      incidentType: "Municipal / Civic Emergency",
+      severity: "HIGH",
+      alertTitle: "⚠️ Municipal Civic Hazard Reported",
+      alertSub: "Public Infrastructure Hazard Verified • Municipal Quick Response",
+      dispatchUnit: "PCMC Municipal Rapid Works #1916",
+      unitSub: "Emergency PWD & Public Infrastructure Repair Fleet",
+      unitIcon: "fa-city",
+      accentColor: "#f59e0b",
+      statusTitle: "Municipal Squad Dispatched",
+      statusSub: "Docket #MC-8921 Generated • SLA: 24h Emergency Repair",
+      triageInstruction: "Stay clear of open manholes, damaged asphalt or fallen electrical wires. Area tagged for municipal emergency repair.",
+      callText: "Call Municipal Helpline (1916)",
+      callNum: "1916"
+    },
     fire: {
+      key: "fire",
       incidentType: "Fire Emergency",
       severity: "CRITICAL",
       alertTitle: "🚨 Fire Emergency Confirmed",
@@ -97,78 +86,144 @@ const NexusZones = (() => {
       callText: "Call Fire Station (101)",
       callNum: "101"
     },
-    police: {
-      incidentType: "Physical Danger",
-      severity: "CRITICAL",
-      alertTitle: "🚨 Armed Threat / Crime Alert",
-      alertSub: "Hostile Danger Pattern Confirmed • Police Tactical Priority 1",
-      dispatchUnit: "Police PCR Interceptor #112",
-      unitSub: "Armed Rapid Response Patrol • Sector 7 Patrol Grid",
-      unitIcon: "fa-shield-halved",
-      accentColor: "#38bdf8",
-      statusTitle: "Police Tactical Unit Dispatched",
-      statusSub: "ETA: 2 mins • GPS Triangulation Locked • High-Speed Intercept",
-      triageInstruction: "Lock and barricade all doors. Stay hidden in a silent room with lights off. Police units are converging.",
-      callText: "Call Police PCR (112)",
-      callNum: "112"
-    },
     accident: {
-      incidentType: "Road Accident",
+      key: "accident",
+      incidentType: "Road Traffic Collision",
       severity: "CRITICAL",
       alertTitle: "🚨 Road Traffic Collision",
       alertSub: "Vehicle Collision Impact Confirmed • Highway Trauma Corridor Cleared",
-      dispatchUnit: "Highway Patrol & ALS Rescue",
+      dispatchUnit: "Highway Emergency Rescue #1073",
       unitSub: "Heavy Hydraulic Rescue Equipment & Trauma Paramedics",
       unitIcon: "fa-car-burst",
-      accentColor: "#f59e0b",
+      accentColor: "#f97316",
       statusTitle: "Rescue & Trauma Team Dispatched",
       statusSub: "ETA: 4 mins • Highway Patrol Unit Alerted",
       triageInstruction: "Do not move injured victims unless immediate fire risk. Switch on hazard blinkers to warn oncoming traffic.",
       callText: "Call Highway Rescue (1073)",
       callNum: "1073"
-    },
-    medical: {
-      incidentType: "Medical Trauma",
-      severity: "CRITICAL",
-      alertTitle: "🚨 Medical Trauma Confirmed",
-      alertSub: "Acute Physiological Distress Confirmed • Priority 1 ALS Unit",
-      dispatchUnit: "Medic Trauma ALS #409",
-      unitSub: "Advanced Life Support Unit • Mobile Defibrillator Equipped",
-      unitIcon: "fa-truck-medical",
-      accentColor: "#ec4899",
-      statusTitle: "Ambulance Dispatched",
-      statusSub: "ETA: 4 mins • Sirens Activated • Green Corridor Cleared",
-      triageInstruction: "Keep patient still and calm. Clear airway, loosen tight clothing, and monitor pulse until paramedics arrive.",
-      callText: "Call Ambulance (108)",
-      callNum: "108"
     }
   };
 
-  const classifyEmergencyFromSpeech = (transcript) => {
-    const text = (transcript || "").toLowerCase();
+  const selectSosCategory = (categoryKey) => {
+    if (!EMERGENCY_PROFILES[categoryKey]) return;
+    activeSosCategory = categoryKey;
+    NexusAudio.play("click");
+
+    // Update active state on category selection cards
+    document.querySelectorAll(".sos-cat-card").forEach((card) => {
+      card.classList.toggle("active", card.getAttribute("data-category") === categoryKey);
+    });
+
+    const profile = EMERGENCY_PROFILES[categoryKey];
+    const instrEl = document.getElementById("sosInstructionText");
+    const sosBtn = document.getElementById("sosBtn");
+    const labelEl = document.getElementById("sosBtnLabel");
+    const subLabelEl = document.getElementById("sosBtnSub");
+
+    if (labelEl) labelEl.textContent = `DISPATCH ${categoryKey.toUpperCase()}`;
+    if (subLabelEl) subLabelEl.textContent = profile.dispatchUnit;
+    if (instrEl) {
+      instrEl.innerHTML = `<span style="color:${profile.accentColor}; font-weight:700;"><i class="fa-solid ${profile.unitIcon}"></i> Selected: ${profile.incidentType}</span> — Tap big button to broadcast GPS beacon`;
+    }
+    if (sosBtn) {
+      sosBtn.style.setProperty("--glow-color", profile.accentColor);
+    }
+  };
+
+  const detectSosCategoryFromText = (text) => {
+    const input = (text || "").toLowerCase().trim();
+    if (!input) return;
 
     // 1. Fire
-    if (/fire|smoke|gas|cylinder|burning|flame|explosion|blast|burn|aag|dhuan/i.test(text)) {
-      return EMERGENCY_PROFILES.fire;
+    if (/fire|smoke|gas|cylinder|aag|dhuan|explosion|blast|flame|burning|jal/i.test(input)) {
+      selectSosCategory("fire");
+      return;
     }
     // 2. Police / Crime
-    if (/police|thief|robbery|chori|attack|danger|stalker|threat|weapon|gun|knife|fight|maar|bachao|break in|intruder|thieves/i.test(text)) {
-      return EMERGENCY_PROFILES.police;
+    if (/police|thief|robbery|chori|chor|attack|danger|threat|stalker|weapon|gun|knife|maar|peet|fight|burglary|break in|intruder/i.test(input)) {
+      selectSosCategory("police");
+      return;
     }
     // 3. Road accident
-    if (/accident|crash|car|bike|truck|vehicle|collision|highway|overturned|hit and run|takkaran|gadi/i.test(text)) {
-      return EMERGENCY_PROFILES.accident;
+    if (/accident|crash|collision|hit and run|takkaran|overturned|highway|gadi lad/i.test(input)) {
+      selectSosCategory("accident");
+      return;
     }
-    // 4. Medical
-    if (/heart|chest|pain|breath|faint|unconscious|blood|stroke|chhot|seizure|bleeding|dard|saans/i.test(text)) {
-      return EMERGENCY_PROFILES.medical;
+    // 4. Municipal / Civic
+    if (/road|sadak|pothole|khadda|gaddha|manhole|sewer|gutter|drain|pipe|water|paani|leak|wire|taar|bijli|pole|khamba|kachra|garbage|municipal|muncipal|pcmc|pwd/i.test(input)) {
+      selectSosCategory("municipal");
+      return;
     }
-
-    // Default: Return Police/Distress general response
-    return EMERGENCY_PROFILES.police;
+    // 5. Medical
+    if (/medical|chot|injury|injured|hurt|wound|cut|bleed|blood|khoon|dard|pain|chest|heart|breath|saans|faint|unconscious|behosh|fracture|toot|ambulance|hospital|doctor|mariz|patient/i.test(input)) {
+      selectSosCategory("medical");
+      return;
+    }
   };
 
-  const renderSosEmergencyCard = (evalData, coords, transcript) => {
+  const triggerSosEmergency = async (forcedCategory = null) => {
+    NexusAudio.play("emergencyAlert");
+
+    // Determine category: forced argument OR note detection OR active category
+    const noteInput = document.getElementById("sosIncidentNotes");
+    const noteText = noteInput ? noteInput.value.trim() : "";
+    
+    let categoryKey = forcedCategory || activeSosCategory;
+    if (!forcedCategory && noteText) {
+      detectSosCategoryFromText(noteText);
+      categoryKey = activeSosCategory;
+    }
+
+    let evalData = EMERGENCY_PROFILES[categoryKey] || EMERGENCY_PROFILES.medical;
+    currentEmergencyCallNum = evalData.callNum;
+
+    // Fetch live coordinates
+    const coords = await NexusHardware.getCurrentCoordinates();
+
+    // Trigger API submission bridge to /api/nexus-engine
+    NexusHardware.processNexusInput("SOS", noteText || evalData.incidentType, coords, noteText).then((result) => {
+      console.log("[Nexus SOS API Response]", result);
+      if (result && result.emergencyDetected) {
+        evalData = {
+          ...evalData,
+          ...result,
+          alertTitle: `🚨 ${result.incidentType} Confirmed`,
+          statusTitle: result.statusBadge || evalData.statusTitle,
+          dispatchUnit: result.dispatchUnit || evalData.dispatchUnit,
+          triageInstruction: result.triageInstruction || evalData.triageInstruction,
+          callNum: result.callNum || evalData.callNum,
+          callText: result.callText || evalData.callText
+        };
+        currentEmergencyCallNum = evalData.callNum;
+      }
+    }).catch((err) => {
+      console.info("[Nexus SOS API Bridge] Using reliable category profile:", err.message);
+    });
+
+    NexusApp.runAiProcessingSequence(
+      {
+        title: `Dispatching ${evalData.incidentType}`,
+        subtitle: noteText ? `Incident: "${noteText.substring(0, 36)}"` : 'Emergency telemetry verified',
+        steps: [
+          `Incident category locked: ${evalData.incidentType}`,
+          `NavIC / GPS coordinates fixed (${coords.latitude}, ${coords.longitude})`,
+          `Broadcasting priority dispatch to ${evalData.dispatchUnit}`
+        ],
+        duration: 1800
+      },
+      () => {
+        const holdArea = document.getElementById("sosHoldArea");
+        const resultCard = document.getElementById("sosResultCard");
+        if (holdArea) holdArea.style.display = "none";
+        if (resultCard) resultCard.classList.add("active");
+
+        renderSosEmergencyCard(evalData, coords, noteText);
+        NexusApp.showToast(`🚨 ${evalData.incidentType} Dispatched!`);
+      }
+    );
+  };
+
+  const renderSosEmergencyCard = (evalData, coords, noteText) => {
     const titleEl = document.getElementById("sosAlertTitle");
     const subEl = document.getElementById("sosAlertSub");
     const coordsValEl = document.getElementById("sosCoordsVal");
@@ -180,18 +235,18 @@ const NexusZones = (() => {
     const statusTitleEl = document.getElementById("sosStatusTitle");
     const statusSubEl = document.getElementById("sosStatusSub");
     const triageInstructionEl = document.getElementById("sosTriageInstruction");
-    const transcriptBox = document.getElementById("sosTranscriptBox");
-    const transcriptText = document.getElementById("sosTranscriptText");
     const callBtn = document.getElementById("sosCallBtn");
+    const noteBox = document.getElementById("sosNoteBox");
+    const noteVal = document.getElementById("sosNoteVal");
 
-    if (titleEl) titleEl.textContent = evalData.alertTitle || `🚨 ${evalData.incidentType || "Emergency"} Detected`;
+    if (titleEl) titleEl.textContent = evalData.alertTitle || `🚨 ${evalData.incidentType} Confirmed`;
     if (subEl) subEl.textContent = evalData.alertSub || "Distress Telemetry Locked • Priority 1 Apex Response";
 
     if (coordsValEl) coordsValEl.textContent = `${coords.latitude}, ${coords.longitude}`;
     if (coordsSubEl) coordsSubEl.textContent = `${evalData.addressHint || "Pimpri Bypass Corridor"} • ±${coords.accuracy || 1.2}m Accuracy`;
 
-    if (unitValEl) unitValEl.textContent = evalData.dispatchUnit || "Medic Trauma #409";
-    if (unitSubEl) unitSubEl.textContent = evalData.unitSub || "Advanced Life Support Unit";
+    if (unitValEl) unitValEl.textContent = evalData.dispatchUnit || "Medic Trauma ALS #108";
+    if (unitSubEl) unitSubEl.textContent = evalData.unitSub || "Rapid Emergency Response Squad";
     if (unitIconEl && evalData.unitIcon) unitIconEl.className = `fa-solid ${evalData.unitIcon}`;
 
     if (incidentValEl) {
@@ -210,111 +265,52 @@ const NexusZones = (() => {
       triageInstructionEl.textContent = evalData.triageInstruction || "Keep calm. Emergency responders are approaching your location.";
     }
 
-    if (transcript && transcript.trim()) {
-      if (transcriptBox) transcriptBox.style.display = "block";
-      if (transcriptText) transcriptText.textContent = `"${transcript.trim()}"`;
-    } else {
-      if (transcriptBox) transcriptBox.style.display = "none";
+    if (noteBox && noteVal) {
+      if (noteText && noteText.trim()) {
+        noteBox.style.display = "block";
+        noteVal.textContent = `"${noteText.trim()}"`;
+      } else {
+        noteBox.style.display = "none";
+      }
     }
 
     if (callBtn) {
       const callSpan = callBtn.querySelector("span");
       if (callSpan) {
-        callSpan.textContent = evalData.callText || "Call Responder (112)";
+        callSpan.textContent = evalData.callText || `Call Dispatcher (${evalData.callNum || "112"})`;
       }
       currentEmergencyCallNum = evalData.callNum || "112";
     }
   };
 
-  const testSimulatedVoice = (sampleKey) => {
-    const samples = {
-      fire: "Help, there is a massive fire on the 3rd floor, thick black smoke spreading!",
-      police: "Thieves are breaking in through the back window, please send police immediately!",
-      accident: "Major highway car crash and vehicle collision, people trapped in the car!",
-      medical: "Severe chest pain and sudden cardiac collapse, patient is losing consciousness!"
-    };
-
-    const transcript = samples[sampleKey] || samples.fire;
-    window.lastSosTranscript = transcript;
-    NexusApp.showToast(`Simulated Voice: "${transcript}"`);
-
-    // Trigger emergency flow directly
-    triggerSosEmergency();
-  };
-
-  const triggerSosEmergency = async () => {
-    NexusAudio.play('emergencyAlert');
-
-    // Fetch live coordinates, audio, and transcript
-    const coords = window.lastSosCoords || await NexusHardware.getCurrentCoordinates();
-    const audioData = window.lastSosAudio || "data:audio/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwE=";
-    const transcript = window.lastSosTranscript || "";
-
-    // Preliminary emergency classification based on voice content
-    let evalData = classifyEmergencyFromSpeech(transcript);
-
-    // Trigger API submission bridge to /api/nexus-engine
-    NexusHardware.processNexusInput("SOS", audioData, coords, transcript).then((result) => {
-      console.log("[Nexus SOS API Response]", result);
-      if (result && result.emergencyDetected) {
-        evalData = {
-          ...evalData,
-          ...result,
-          alertTitle: `🚨 ${result.incidentType} Confirmed`,
-          statusTitle: result.statusBadge || evalData.statusTitle,
-          dispatchUnit: result.dispatchUnit || evalData.dispatchUnit,
-          triageInstruction: result.triageInstruction || evalData.triageInstruction
-        };
-      }
-    }).catch((err) => {
-      console.info("[Nexus SOS API Bridge] Using local voice heuristics:", err.message);
-    });
-
-    NexusApp.runAiProcessingSequence(
-      {
-        title: 'Triangulating Distress Beacon',
-        subtitle: transcript ? `Acoustic voice analysis: "${transcript.substring(0, 32)}..."` : 'Multimodal voice signature verified',
-        steps: [
-          `Distress audio evaluated (${evalData.incidentType} pattern)`,
-          `NavIC / GPS coordinate locked (${coords.latitude}, ${coords.longitude})`,
-          `Broadcasting dispatch order to ${evalData.dispatchUnit}`
-        ],
-        duration: 2000
-      },
-      () => {
-        const holdArea = document.getElementById('sosHoldArea');
-        const resultCard = document.getElementById('sosResultCard');
-        if (holdArea) holdArea.style.display = 'none';
-        if (resultCard) resultCard.classList.add('active');
-
-        // Dynamically populate the result card with the exact emergency!
-        renderSosEmergencyCard(evalData, coords, transcript);
-
-        NexusApp.showToast(`🚨 ${evalData.incidentType} Broadcast Dispatched!`);
-      }
-    );
-  };
-
   const resetSos = () => {
-    NexusAudio.play('click');
-    window.lastSosTranscript = "";
-    const resultCard = document.getElementById('sosResultCard');
-    const holdArea = document.getElementById('sosHoldArea');
-    const instruction = document.getElementById('sosInstructionText');
-    const circle = document.getElementById('sosProgressCircle');
+    NexusAudio.play("click");
+    const resultCard = document.getElementById("sosResultCard");
+    const holdArea = document.getElementById("sosHoldArea");
+    const noteInput = document.getElementById("sosIncidentNotes");
 
-    if (resultCard) resultCard.classList.remove('active');
-    if (holdArea) holdArea.style.display = 'flex';
-    if (instruction) instruction.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Press & hold for 1.5s to trigger emergency broadcast';
-    if (circle) {
-      const circumference = 2 * Math.PI * 100;
-      circle.style.strokeDashoffset = circumference;
-    }
+    if (resultCard) resultCard.classList.remove("active");
+    if (holdArea) holdArea.style.display = "flex";
+    if (noteInput) noteInput.value = "";
+    selectSosCategory(activeSosCategory || "medical");
   };
 
-  const call112 = () => {
-    NexusAudio.play('click');
-    NexusApp.showToast(`Initiating encrypted VoIP uplink to Emergency Dispatcher ${currentEmergencyCallNum}...`);
+  const callDirect = (number = null) => {
+    NexusAudio.play("click");
+    const targetNum = number || currentEmergencyCallNum || "112";
+    NexusApp.showToast(`Dialing Emergency Dispatcher ${targetNum}...`);
+    window.location.href = `tel:${targetNum}`;
+  };
+
+  const initSos = () => {
+    // Bind click to main SOS button
+    const sosBtn = document.getElementById("sosBtn");
+    if (sosBtn) {
+      sosBtn.addEventListener("click", () => triggerSosEmergency());
+    }
+
+    // Set initial active category
+    selectSosCategory("medical");
   };
 
   /* --------------------------------------------------------------------------
@@ -1028,10 +1024,12 @@ const NexusZones = (() => {
 
   return {
     initSos,
+    selectSosCategory,
+    detectSosCategoryFromText,
     triggerSosEmergency,
-    testSimulatedVoice,
     resetSos,
-    call112,
+    callDirect,
+    call112: () => callDirect("112"),
     setCivicMode,
     captureCivicMedia,
     startCivicAnalysis,

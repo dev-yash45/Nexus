@@ -119,64 +119,82 @@
               </div>
             </div>
 
-            <!-- Central Hold to Speak Container -->
+            <!-- Central SOS Emergency Command Stage -->
             <div class="sos-stage-wrapper" id="sosHoldArea">
+
+              <!-- Interactive Category Triage Selector -->
+              <div class="sos-cat-grid mono">
+                <div class="sos-cat-card active" data-category="medical" style="--cat-color: #ec4899; --cat-color-rgb: 236, 72, 153;" onclick="NexusZones.selectSosCategory('medical')">
+                  <i class="fa-solid fa-truck-medical sos-cat-icon"></i>
+                  <div class="sos-cat-title">MEDICAL</div>
+                  <div class="sos-cat-sub">Chot / Hurt / Heart (108)</div>
+                </div>
+
+                <div class="sos-cat-card" data-category="police" style="--cat-color: #38bdf8; --cat-color-rgb: 56, 189, 248;" onclick="NexusZones.selectSosCategory('police')">
+                  <i class="fa-solid fa-shield-halved sos-cat-icon"></i>
+                  <div class="sos-cat-title">POLICE</div>
+                  <div class="sos-cat-sub">Chori / Threat / Danger (112)</div>
+                </div>
+
+                <div class="sos-cat-card" data-category="municipal" style="--cat-color: #f59e0b; --cat-color-rgb: 245, 158, 11;" onclick="NexusZones.selectSosCategory('municipal')">
+                  <i class="fa-solid fa-city sos-cat-icon"></i>
+                  <div class="sos-cat-title">MUNICIPAL</div>
+                  <div class="sos-cat-sub">Road / Khadda / Wire (1916)</div>
+                </div>
+
+                <div class="sos-cat-card" data-category="fire" style="--cat-color: #ef4444; --cat-color-rgb: 239, 68, 68;" onclick="NexusZones.selectSosCategory('fire')">
+                  <i class="fa-solid fa-fire-extinguisher sos-cat-icon"></i>
+                  <div class="sos-cat-title">FIRE</div>
+                  <div class="sos-cat-sub">Aag / Smoke / Gas (101)</div>
+                </div>
+
+                <div class="sos-cat-card" data-category="accident" style="--cat-color: #f97316; --cat-color-rgb: 249, 115, 22;" onclick="NexusZones.selectSosCategory('accident')">
+                  <i class="fa-solid fa-car-burst sos-cat-icon"></i>
+                  <div class="sos-cat-title">ACCIDENT</div>
+                  <div class="sos-cat-sub">Collision / Highway (1073)</div>
+                </div>
+              </div>
               
+              <!-- Massive 1-Tap SOS Dispatch Beacon -->
               <div class="pulse-rings-wrapper">
                 <div class="pulse-ring"></div>
                 <div class="pulse-ring"></div>
                 <div class="pulse-ring"></div>
 
-                <!-- Circular Progress Ring Gauge -->
-                <svg class="hold-progress-svg" viewBox="0 0 224 224">
-                  <circle cx="112" cy="112" r="100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="5"></circle>
-                  <circle class="hold-progress-circle" id="sosProgressCircle" cx="112" cy="112" r="100" fill="none" stroke="#ffffff" stroke-width="6"></circle>
-                </svg>
-
-                <!-- The Massive SOS Button -->
-                <button class="sos-main-button" id="sosBtn" aria-label="Hold to Speak or Record Emergency Distress Audio">
-                  <i class="fa-solid fa-microphone-lines sos-icon"></i>
-                  <span class="sos-label">HOLD SOS</span>
-                  <span class="sos-subtext mono">VOICE / AUDIO</span>
+                <button class="sos-main-button" id="sosBtn" onclick="NexusZones.triggerSosEmergency()" aria-label="1-Tap SOS Emergency GPS Beacon Broadcast">
+                  <i class="fa-solid fa-bolt sos-icon"></i>
+                  <span class="sos-label" id="sosBtnLabel">DISPATCH MEDICAL</span>
+                  <span class="sos-subtext mono" id="sosBtnSub">Medic Trauma ALS #108</span>
                 </button>
-              </div>
-
-              <!-- Expanding Audio Wave Visualizer -->
-              <div class="audio-waves-container" id="sosAudioWaves">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
               </div>
 
               <div class="sos-instruction" id="sosInstructionText">
-                <i class="fa-solid fa-fingerprint"></i> Press & hold for 1.5s to trigger emergency broadcast
+                <span style="color:#ec4899; font-weight:700;"><i class="fa-solid fa-truck-medical"></i> Selected: Medical Emergency</span> — Tap big button to broadcast GPS beacon
               </div>
 
-              <div style="margin-top:20px; display:flex; gap:10px; width:100%; max-width:400px; flex-wrap:wrap;">
-                <button class="btn-action btn-secondary-action" onclick="NexusZones.call112()">
-                  <i class="fa-solid fa-phone"></i> Instant Call 112
-                </button>
-                <button class="btn-action btn-secondary-action" onclick="NexusZones.triggerSosEmergency()">
-                  <i class="fa-solid fa-bolt"></i> One-Tap Silent Beacon
+              <!-- Quick Incident Note Input -->
+              <div class="sos-note-input-wrap">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <input type="text" id="sosIncidentNotes" class="sos-note-input mono" placeholder="Describe incident (e.g. 'Chot lag gayi', 'Chori hui', 'Sadak pe khadda')..." oninput="NexusZones.detectSosCategoryFromText(this.value)">
+                <button class="sos-note-submit-btn mono" onclick="NexusZones.triggerSosEmergency()" title="Instant Dispatch">
+                  <i class="fa-solid fa-paper-plane"></i> DISPATCH
                 </button>
               </div>
 
-              <!-- Voice Recognition Simulation Presets -->
-              <div style="margin-top:16px; width:100%; max-width:440px; text-align:center;">
-                <div class="mono" style="font-size:10.5px; color:var(--text-muted); margin-bottom:8px;">
-                  <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--color-sos)"></i> TEST MULTIMODAL VOICE ROUTING (1-CLICK SAMPLES):
-                </div>
-                <div class="quick-preset-chips" style="justify-content:center; flex-wrap:wrap; gap:6px;">
-                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('fire')"><i class="fa-solid fa-fire" style="color:#ef4444"></i> "Fire on 3rd Floor"</span>
-                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('police')"><i class="fa-solid fa-shield-halved" style="color:#38bdf8"></i> "Thieves Breaking In"</span>
-                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('accident')"><i class="fa-solid fa-car-burst" style="color:#f59e0b"></i> "Highway Collision"</span>
-                  <span class="preset-chip mono" onclick="NexusZones.testSimulatedVoice('medical')"><i class="fa-solid fa-heart-pulse" style="color:#ec4899"></i> "Severe Chest Pain"</span>
-                </div>
+              <!-- Instant Direct Helpline Dialers -->
+              <div class="sos-hotlines-row mono">
+                <button class="hotline-btn" onclick="NexusZones.callDirect('108')">
+                  <i class="fa-solid fa-phone" style="color:#ec4899;"></i> 108 Ambulance
+                </button>
+                <button class="hotline-btn" onclick="NexusZones.callDirect('112')">
+                  <i class="fa-solid fa-phone" style="color:#38bdf8;"></i> 112 Police
+                </button>
+                <button class="hotline-btn" onclick="NexusZones.callDirect('1916')">
+                  <i class="fa-solid fa-phone" style="color:#f59e0b;"></i> 1916 Municipal
+                </button>
+                <button class="hotline-btn" onclick="NexusZones.callDirect('101')">
+                  <i class="fa-solid fa-phone" style="color:#ef4444;"></i> 101 Fire
+                </button>
               </div>
 
             </div>
@@ -189,16 +207,16 @@
                   <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
-                  <div style="font-size:18px; font-weight:900; color:#fff;" id="sosAlertTitle">🚨 Emergency Detected</div>
-                  <div class="mono" style="font-size:12px; color:#ff8787;" id="sosAlertSub">Distress Pattern Confirmed • Priority 1 Red Alert</div>
+                  <div style="font-size:18px; font-weight:900; color:#fff;" id="sosAlertTitle">🚨 Medical Emergency Confirmed</div>
+                  <div class="mono" style="font-size:12px; color:#ff8787;" id="sosAlertSub">Distress Telemetry Locked • Priority 1 Red Alert</div>
                 </div>
               </div>
 
-              <!-- Live Voice Audio Transcript Pill -->
-              <div id="sosTranscriptBox" class="mono" style="display:none; margin-bottom:14px; background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); padding:10px 14px; font-size:12px; color:#f8fafc;">
-                <i class="fa-solid fa-microphone-lines" style="color:var(--color-sos); margin-right:6px;"></i>
-                <span style="color:var(--text-muted); margin-right:4px;">VOICE HEARD:</span>
-                <span id="sosTranscriptText" style="color:#fff; font-weight:600;">"Help, there is an emergency!"</span>
+              <!-- Incident Note Pill (if entered) -->
+              <div id="sosNoteBox" class="mono" style="display:none; margin-bottom:14px; background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-md); padding:10px 14px; font-size:12px; color:#f8fafc;">
+                <i class="fa-solid fa-comment-dots" style="color:var(--color-sos); margin-right:6px;"></i>
+                <span style="color:var(--text-muted); margin-right:4px;">INCIDENT REPORT:</span>
+                <span id="sosNoteVal" style="color:#fff; font-weight:600;">"Chot lag gayi"</span>
               </div>
 
               <div class="dispatch-info-grid mono">
@@ -209,8 +227,8 @@
                 </div>
                 <div class="info-tile">
                   <div class="info-tile-label"><i class="fa-solid fa-truck-medical" id="sosUnitIcon"></i> Dispatch Unit</div>
-                  <div class="info-tile-val" id="sosUnitVal">Medic Trauma #409</div>
-                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="sosUnitSub">Advanced Life Support (ALS) Unit</div>
+                  <div class="info-tile-val" id="sosUnitVal">Medic Trauma ALS #108</div>
+                  <div style="font-size:10px; color:var(--text-muted); margin-top:3px;" id="sosUnitSub">Advanced Life Support Unit</div>
                 </div>
                 <div class="info-tile">
                   <div class="info-tile-label"><i class="fa-solid fa-tower-cell"></i> Emergency Category</div>
@@ -233,13 +251,13 @@
                 <i class="fa-solid fa-life-ring" style="margin-top:2px; font-size:16px; color:#ef4444; flex-shrink:0;"></i>
                 <div>
                   <strong style="color:#fff;">Immediate Action Protocol:</strong>
-                  <div id="sosTriageInstruction" style="margin-top:2px; color:#fecaca; line-height:1.4;">Keep patient still and calm. Clear airway and do not move unless in immediate danger.</div>
+                  <div id="sosTriageInstruction" style="margin-top:2px; color:#fecaca; line-height:1.4;">Keep patient still and calm. Apply firm direct pressure to bleeding wounds. Paramedics are en route.</div>
                 </div>
               </div>
 
               <div class="card-actions-row">
-                <button class="btn-action btn-primary-action" id="sosCallBtn" onclick="NexusZones.call112()">
-                  <i class="fa-solid fa-phone"></i> <span>Call Responder (112)</span>
+                <button class="btn-action btn-primary-action" id="sosCallBtn" onclick="NexusZones.callDirect()">
+                  <i class="fa-solid fa-phone"></i> <span>Call Ambulance (108)</span>
                 </button>
                 <button class="btn-action btn-secondary-action" onclick="NexusApp.showToast('Encrypted live location token shared with first responders!')">
                   <i class="fa-solid fa-share-nodes"></i> <span>Share Live Beacon</span>

@@ -1,54 +1,12 @@
 /**
  * ==============================================================================
  * NEXUS HARDWARE & SENSOR INTEGRATION ENGINE
- * Native Browser Hardware Access: Microphone, Camera, and Geolocation (GPS)
+ * Native Browser Hardware Access: High-Accuracy Geolocation (GPS) & Camera
  * Zero external frameworks • Pure Vanilla JavaScript • HTML5 Web APIs
  * ==============================================================================
  */
 
 const NexusHardware = (() => {
-  // Audio state
-  let mediaRecorder = null;
-  let audioChunks = [];
-  let audioStream = null;
-
-  // Real-time Speech-to-Text Recognition State
-  let speechRecognizer = null;
-  let liveVoiceTranscript = "";
-
-  const initSpeechRecognition = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition && !speechRecognizer) {
-      try {
-        speechRecognizer = new SpeechRecognition();
-        speechRecognizer.continuous = true;
-        speechRecognizer.interimResults = true;
-        speechRecognizer.lang = "en-US";
-
-        speechRecognizer.onresult = (event) => {
-          let text = "";
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            text += event.results[i][0].transcript;
-          }
-          if (text) {
-            liveVoiceTranscript = text.trim();
-            console.log("[Nexus Hardware] Live Speech Recognized:", liveVoiceTranscript);
-            const instr = document.getElementById("sosInstructionText");
-            if (instr && liveVoiceTranscript) {
-              instr.innerHTML = `<i class="fa-solid fa-microphone-lines" style="color:#ef4444"></i> Heard: <em>"${liveVoiceTranscript}"</em>`;
-            }
-          }
-        };
-
-        speechRecognizer.onerror = (e) => {
-          console.warn("[Nexus Hardware] Speech Recognition status:", e.error);
-        };
-      } catch (err) {
-        console.warn("[Nexus Hardware] Speech Recognition unavailable:", err);
-      }
-    }
-  };
-
   // Camera state
   let activeCameraStream = null;
 
@@ -56,7 +14,7 @@ const NexusHardware = (() => {
      1. HELPER: BLOB TO BASE64 CONVERTER
      -------------------------------------------------------------------------- */
   /**
-   * Converts a Blob (Audio/Image/File) into a Base64 Data URL string
+   * Converts a Blob (Image/File) into a Base64 Data URL string
    * @param {Blob} blob
    * @returns {Promise<string>}
    */
@@ -116,94 +74,7 @@ const NexusHardware = (() => {
   };
 
   /* --------------------------------------------------------------------------
-     3. MICROPHONE & AUDIO RECORDING INTEGRATION (SOS TAB)
-     -------------------------------------------------------------------------- */
-  /**
-   * Starts recording live audio from the user's microphone
-   * @returns {Promise<boolean>}
-   */
-  const startAudioRecording = async () => {
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("getUserMedia is not supported by your browser environment.");
-      }
-
-      audioChunks = [];
-      liveVoiceTranscript = "";
-      initSpeechRecognition();
-      if (speechRecognizer) {
-        try { speechRecognizer.start(); } catch (e) {}
-      }
-
-      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      // Determine supported audio MIME type safely
-      const mimeTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
-      const isTypeSupported = typeof MediaRecorder !== "undefined" && typeof MediaRecorder.isTypeSupported === "function";
-      const supportedType = isTypeSupported ? (mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || "") : "";
-
-      mediaRecorder = supportedType 
-        ? new MediaRecorder(audioStream, { mimeType: supportedType }) 
-        : new MediaRecorder(audioStream);
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
-      };
-
-      mediaRecorder.start();
-      console.log("[Nexus Hardware] Audio & Speech Recording Started...");
-      return true;
-    } catch (error) {
-      console.error("[Nexus Hardware] Microphone Access Error:", error);
-      if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
-        handlePermissionError(
-          "Microphone",
-          "Microphone access is required to record your emergency distress voice broadcast. Please allow microphone permission in your browser."
-        );
-      } else {
-        alert(`Microphone Error: ${error.message || "Hardware unavailable"}`);
-      }
-      return false;
-    }
-  };
-
-  /**
-   * Stops audio recording and returns Base64 audio string, Blob & Speech transcript
-   * @returns {Promise<{audioBlob: Blob, audioBase64: string, mimeType: string, transcript: string}>}
-   */
-  const stopAudioRecording = () => {
-    return new Promise((resolve) => {
-      if (speechRecognizer) {
-        try { speechRecognizer.stop(); } catch (e) {}
-      }
-
-      if (!mediaRecorder || mediaRecorder.state === "inactive") {
-        return resolve({ audioBlob: null, audioBase64: "", mimeType: "audio/webm", transcript: liveVoiceTranscript });
-      }
-
-      mediaRecorder.onstop = async () => {
-        const mimeType = mediaRecorder.mimeType || "audio/webm";
-        const audioBlob = new Blob(audioChunks, { type: mimeType });
-        const audioBase64 = await blobToBase64(audioBlob);
-
-        // Stop and release audio tracks
-        if (audioStream) {
-          audioStream.getTracks().forEach(track => track.stop());
-          audioStream = null;
-        }
-
-        console.log(`[Nexus Hardware] Audio Recording Complete (${(audioBlob.size / 1024).toFixed(1)} KB), Transcript: "${liveVoiceTranscript}"`);
-        resolve({ audioBlob, audioBase64, mimeType, transcript: liveVoiceTranscript });
-      };
-
-      mediaRecorder.stop();
-    });
-  };
-
-  /* --------------------------------------------------------------------------
-     4. CAMERA INTEGRATION (CIVIC ACTION & MED-SCANNER TABS)
+     3. CAMERA INTEGRATION (CIVIC ACTION & MED-SCANNER TABS)
      -------------------------------------------------------------------------- */
   /**
    * Streams device rear/environment or web camera into a <video> element
@@ -312,23 +183,24 @@ const NexusHardware = (() => {
   };
 
   /* --------------------------------------------------------------------------
-     5. API DATA SUBMISSION (THE FETCH BRIDGE)
+     4. API DATA SUBMISSION (THE FETCH BRIDGE)
      -------------------------------------------------------------------------- */
   /**
-   * Submits multimodal data (Base64 audio/image) and location to /api/nexus-engine
+   * Submits multimodal data (Base64 image or text notes) and location to /api/nexus-engine
    * @param {string} zoneType - "SOS" | "CIVIC" | "MED" | "SCAM"
    * @param {string} mediaBase64 - Base64 Data URL or raw text
    * @param {Object} coordinates - { latitude, longitude, accuracy }
+   * @param {string} notes - Optional incident notes or context
    * @returns {Promise<Object>}
    */
-  const processNexusInput = async (zoneType, mediaBase64, coordinates, transcript = "") => {
+  const processNexusInput = async (zoneType, mediaBase64, coordinates, notes = "") => {
     try {
       console.log(`[Nexus Bridge] Submitting payload for [${zoneType}] with GPS:`, coordinates);
 
       const payload = {
         zoneType: zoneType,
-        inputContent: mediaBase64,
-        transcript: transcript || window.lastSosTranscript || "",
+        inputContent: mediaBase64 || "SOS Emergency Signal",
+        transcript: notes || "",
         location: coordinates
       };
 
@@ -355,11 +227,11 @@ const NexusHardware = (() => {
   };
 
   /* --------------------------------------------------------------------------
-     6. PERMISSION & ERROR HANDLING
+     5. PERMISSION & ERROR HANDLING
      -------------------------------------------------------------------------- */
   /**
    * Shows user-friendly permission guidance alerts and toasts
-   * @param {string} permissionType - 'Microphone' | 'Camera' | 'Location (GPS)'
+   * @param {string} permissionType - 'Camera' | 'Location (GPS)'
    * @param {string} guidanceMessage
    */
   const handlePermissionError = (permissionType, guidanceMessage) => {
@@ -371,45 +243,11 @@ const NexusHardware = (() => {
   };
 
   /* --------------------------------------------------------------------------
-     7. INITIALIZATION & HARDWARE EVENT BINDINGS
+     6. INITIALIZATION & CAMERA LIFECYCLE
      -------------------------------------------------------------------------- */
-  /**
-   * Binds SOS hold events to real Mic + Geolocation, and Civic/Med to real Camera
-   */
   const init = () => {
-    console.log("[Nexus Hardware] Native Browser Hardware Engine Initialized.");
+    console.log("[Nexus Hardware] Hardware & Sensor Engine Initialized (Cleaned).");
 
-    // Bind SOS button hardware actions
-    const sosBtn = document.getElementById("sosBtn");
-    if (sosBtn) {
-      // Mouse & Touchstart: start real audio recording
-      const handlePressStart = async () => {
-        await startAudioRecording();
-      };
-
-      // Mouseup & Touchend: stop recording, fetch GPS, and submit
-      const handlePressEnd = async () => {
-        // Collect coordinates and audio simultaneously
-        const [coords, audioData] = await Promise.all([
-          getCurrentCoordinates(),
-          stopAudioRecording()
-        ]);
-
-        if (audioData.audioBase64) {
-          console.log("[Nexus SOS] Audio recorded with coordinates:", coords);
-          window.lastSosAudio = audioData.audioBase64;
-          window.lastSosCoords = coords;
-          window.lastSosTranscript = audioData.transcript || "";
-        }
-      };
-
-      sosBtn.addEventListener("mousedown", handlePressStart);
-      sosBtn.addEventListener("touchstart", handlePressStart, { passive: true });
-      window.addEventListener("mouseup", handlePressEnd);
-      window.addEventListener("touchend", handlePressEnd);
-    }
-
-    // Bind Camera streaming lifecycle for Civic Action & Med-Scanner tabs
     const civicVideo = document.getElementById("civicCameraVideo");
     const medVideo = document.getElementById("medCameraVideo");
 
@@ -440,21 +278,18 @@ const NexusHardware = (() => {
   // Expose Public API
   return {
     init,
-    startAudioRecording,
-    stopAudioRecording,
     getCurrentCoordinates,
     startCameraStream,
     stopCameraStream,
     captureVideoFrame,
     processNexusInput,
-    blobToBase64,
-    handlePermissionError
+    blobToBase64
   };
 })();
 
-// Attach to window
-window.NexusHardware = NexusHardware;
-window.processNexusInput = NexusHardware.processNexusInput;
-
-// Auto-initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", NexusHardware.init);
+// Auto-initialize hardware bindings on DOM load
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", NexusHardware.init);
+} else {
+  NexusHardware.init();
+}
