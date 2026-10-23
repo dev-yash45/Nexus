@@ -6,23 +6,17 @@ Nexus is an elite, multimodal emergency and civic action command web application
 
 ## 🚨 Core Zones & Capabilities
 
-1. **SOS Distress (The Red Zone)**
-   - **Interactive Category Triage**: 1-tap direct selection between **Medical Emergency / Trauma (108)**, **Police / Crime (112)**, **Municipal / Civic Hazard (1916)**, **Fire Emergency (101)**, and **Road Traffic Collision (1073)**.
-   - **One-Tap Instant Dispatch Beacon**: Rapid distress beacon broadcast locking high-accuracy NavIC / GPS coordinates (`±1.2m`).
-   - **Smart Incident Note Analysis**: Optional natural-language input field that auto-detects injury ("chot", "khoon"), crime ("chori", "threat"), municipal issues ("khadda", "wire"), fire ("aag"), or collision.
-   - **Instant Direct Helpline Bar**: Direct hotline dialers for 108 Ambulance, 112 Police, 1916 Municipal Corporation, and 101 Fire Brigade.
-
-2. **Civic Action (The Yellow Zone)**
+1. **Civic Action (The Yellow Zone — Primary Hub)**
    - **Live Viewfinder & Camera Integration**: Streams device rear camera (`environment`) with HUD corner brackets and scanning laser overlay.
    - **2-Step Review Workflow**: Freeze and review captured hazard frames before committing to AI analysis.
-   - **Automated Municipal Docketing**: Generates classified work orders with depth/cavity dimensions and ward telemetry.
+   - **Automated Municipal Docketing**: Generates classified work orders with depth/cavity dimensions, reverse geocoding, and ward telemetry.
 
-3. **Med-Scanner AI (The Blue Zone)**
+2. **Med-Scanner AI (The Blue Zone)**
    - **Optical Triage & Formulary Verification**: Scans handwritten doctor prescriptions, hospital discharge summaries, and lab records.
    - **Critical Allergy Detection**: Prominently highlights life-threatening drug contraindications (e.g. Beta-Lactam / Penicillin anaphylaxis).
    - **Live Camera Scanning or PDF/Image Upload**: Dual-mode input with document preview staging.
 
-4. **Scam Shield Sentinel (The Green Zone)**
+3. **Scam Shield Sentinel (The Green Zone)**
    - **Zero-Day Phishing & Fraud Inspection**: Forensic analysis of suspicious text messages, phishing links, and deceptive APK links.
    - **Government Document & Seal Verification**: Deep audits of fake traffic e-challans, police arrest warrants, court notices, and forged sovereign emblems.
 

@@ -4,13 +4,6 @@
  */
 const NexusApp = (() => {
   const ZONES = {
-    sos: {
-      name: 'RED ZONE',
-      badge: 'RED ZONE (112 APEX)',
-      color: '#ef4444',
-      rgb: '239, 68, 68',
-      islandText: 'EMERGENCY DISPATCH LIVE'
-    },
     civic: {
       name: 'YELLOW ZONE',
       badge: 'YELLOW ZONE (CIVIC)',
@@ -34,7 +27,7 @@ const NexusApp = (() => {
     }
   };
 
-  let activeZone = 'sos';
+  let activeZone = 'civic';
   let toastTimer = null;
 
   /* --------------------------------------------------------------------------
@@ -184,10 +177,9 @@ const NexusApp = (() => {
       if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') {
         return;
       }
-      if (e.key === '1') switchTab('sos');
-      else if (e.key === '2') switchTab('civic');
-      else if (e.key === '3') switchTab('med');
-      else if (e.key === '4') switchTab('shield');
+      if (e.key === '1') switchTab('civic');
+      else if (e.key === '2') switchTab('med');
+      else if (e.key === '3') switchTab('shield');
     });
   };
 
@@ -224,8 +216,8 @@ const NexusApp = (() => {
     startLiveClock();
     setupKeyboardShortcuts();
     setupHeaderControls();
-    NexusZones.initSos();
-    console.log('Nexus Emergency Universal Bridge initialized in full desktop view mode.');
+    switchTab('civic');
+    console.log('Nexus Civic & Emergency Intelligence Bridge initialized in full desktop mode.');
   };
 
   return {
