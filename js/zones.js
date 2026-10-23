@@ -5,7 +5,7 @@
 const NexusZones = (() => {
   // Civic state
   let civicCaptured = false;
-  let currentCivicMode = 'photo'; // 'photo' | 'video' | 'upload'
+  let currentCivicMode = 'photo'; // 'photo' | 'upload'
 
   // Med state
   let currentDocLoaded = null;
@@ -25,25 +25,35 @@ const NexusZones = (() => {
   const setCivicMode = (mode) => {
     currentCivicMode = mode;
     NexusAudio.play('click');
-    document.querySelectorAll('.mode-pill-btn').forEach(btn => {
+    document.querySelectorAll('#pane-civic .mode-pill-btn').forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
     });
 
     const fileInput = document.getElementById('civicFileInput');
     const videoEl = document.getElementById('civicCameraVideo');
 
-    if (mode === 'upload' && fileInput) {
-      fileInput.click();
-    } else if (mode === 'video' || mode === 'photo') {
-      if (videoEl) {
+    if (mode === 'upload') {
+      if (fileInput) fileInput.click();
+    } else if (mode === 'photo') {
+      // Clear any preview image so camera stream or default SVG is clean
+      const previewImg = document.getElementById('civicPreviewImg');
+      const defaultSvg = document.getElementById('civicDefaultSvg');
+      if (previewImg) {
+        previewImg.src = '';
+        previewImg.style.display = 'none';
+      }
+      if (defaultSvg) defaultSvg.style.display = 'block';
+      if (fileInput) fileInput.value = '';
+
+      if (videoEl && window.NexusHardware) {
         NexusHardware.startCameraStream(videoEl, 'environment');
       }
-      NexusApp.showToast(`Camera Viewfinder switched to: ${mode.toUpperCase()} MODE`);
+      NexusApp.showToast('Camera active: Photo mode ready');
     }
   };
 
   // STEP 1: Capture Media (Shows Captured Preview with Review Options - NO DIRECT JUMP)
-  const captureCivicMedia = () => {
+  const captureCivicMedia = (isUpload = false) => {
     NexusAudio.play('shutter');
 
     // Trigger visual shutter flash
@@ -55,10 +65,15 @@ const NexusZones = (() => {
 
     civicCaptured = true;
 
-    // Grab live frame from camera video element if active
-    const videoEl = document.getElementById('civicCameraVideo');
-    if (videoEl && videoEl.readyState >= 2) {
-      const liveFrameBase64 = NexusHardware.captureVideoFrame(videoEl);
+    // Grab live frame from camera video element if not from upload
+    if (!isUpload) {
+      const videoEl = document.getElementById('civicCameraVideo');
+      let liveFrameBase64 = null;
+      if (videoEl && videoEl.readyState >= 2 && window.NexusHardware) {
+        liveFrameBase64 = NexusHardware.captureVideoFrame(videoEl);
+      } else {
+        liveFrameBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/";
+      }
       window.lastCivicFrame = liveFrameBase64;
 
       const previewImg = document.getElementById('civicPreviewImg');
@@ -66,8 +81,16 @@ const NexusZones = (() => {
       if (previewImg) {
         previewImg.src = liveFrameBase64;
         previewImg.style.display = 'block';
-        if (defaultSvg) defaultSvg.style.display = 'none';
       }
+      if (defaultSvg) defaultSvg.style.display = 'none';
+
+      const reviewImg = document.getElementById('civicReviewImg');
+      const reviewSvg = document.getElementById('civicReviewSvg');
+      if (reviewImg) {
+        reviewImg.src = liveFrameBase64;
+        reviewImg.style.display = 'block';
+      }
+      if (reviewSvg) reviewSvg.style.display = 'none';
     }
 
     // Show captured preview stage
@@ -83,7 +106,7 @@ const NexusZones = (() => {
       const metaEl = document.getElementById('civicCapturedTimestamp');
       if (metaEl) metaEl.textContent = `CAPTURED: TODAY ${timeStr} • GPS ACCURACY ±1.2m`;
 
-      NexusApp.showToast('Media captured! Review photo and confirm to start AI analysis.');
+      NexusApp.showToast(isUpload ? 'Photo uploaded! Review image and confirm.' : 'Media captured! Review photo and confirm to start AI analysis.');
     }, 200);
   };
 
@@ -124,15 +147,50 @@ const NexusZones = (() => {
   const retakeCivic = () => {
     NexusAudio.play('click');
     civicCaptured = false;
+    window.lastCivicFrame = null;
+
     const liveView = document.getElementById('civicLiveViewSection');
     const previewBox = document.getElementById('civicCapturedPreview');
     const resultCard = document.getElementById('civicResultCard');
+    const previewImg = document.getElementById('civicPreviewImg');
+    const defaultSvg = document.getElementById('civicDefaultSvg');
+    const reviewImg = document.getElementById('civicReviewImg');
+    const reviewSvg = document.getElementById('civicReviewSvg');
+    const fileInput = document.getElementById('civicFileInput');
+    const videoEl = document.getElementById('civicCameraVideo');
 
+    // 1. Clear any old uploaded photo or captured image completely
+    if (fileInput) fileInput.value = '';
+
+    if (previewImg) {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+    }
+    if (defaultSvg) defaultSvg.style.display = 'block';
+
+    if (reviewImg) {
+      reviewImg.src = '';
+      reviewImg.style.display = 'none';
+    }
+    if (reviewSvg) reviewSvg.style.display = 'block';
+
+    // 2. Hide review and result cards, show live viewfinder
     if (resultCard) resultCard.classList.remove('active');
     if (previewBox) previewBox.classList.remove('active');
     if (liveView) liveView.style.display = 'block';
 
-    NexusApp.showToast('Camera active. Ready for new capture.');
+    // 3. Reset mode pills back to photo
+    currentCivicMode = 'photo';
+    document.querySelectorAll('#pane-civic .mode-pill-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-mode') === 'photo');
+    });
+
+    // 4. Resume camera stream if in photo mode
+    if (videoEl && window.NexusHardware) {
+      NexusHardware.startCameraStream(videoEl, 'environment');
+    }
+
+    NexusApp.showToast('Old capture cleared. Viewfinder ready for new photo.');
   };
 
   const handleCivicFileUpload = (e) => {
@@ -141,14 +199,26 @@ const NexusZones = (() => {
       NexusAudio.play('shutter');
       const reader = new FileReader();
       reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        window.lastCivicFrame = dataUrl;
+
         const previewImg = document.getElementById('civicPreviewImg');
         const defaultSvg = document.getElementById('civicDefaultSvg');
-        if (previewImg && defaultSvg) {
-          previewImg.src = event.target.result;
+        if (previewImg) {
+          previewImg.src = dataUrl;
           previewImg.style.display = 'block';
-          defaultSvg.style.display = 'none';
         }
-        captureCivicMedia();
+        if (defaultSvg) defaultSvg.style.display = 'none';
+
+        const reviewImg = document.getElementById('civicReviewImg');
+        const reviewSvg = document.getElementById('civicReviewSvg');
+        if (reviewImg) {
+          reviewImg.src = dataUrl;
+          reviewImg.style.display = 'block';
+        }
+        if (reviewSvg) reviewSvg.style.display = 'none';
+
+        captureCivicMedia(true);
       };
       reader.readAsDataURL(file);
     }
